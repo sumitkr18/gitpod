@@ -28,6 +28,7 @@ type APIInterface interface {
 	io.Closer
 
 	GetOwnerToken(ctx context.Context, workspaceID string) (res string, err error)
+	GetIDEResourcesToken(ctx context.Context, workspaceID string) (res string, err error)
 	AdminBlockUser(ctx context.Context, req *AdminBlockUserRequest) (err error)
 	GetLoggedInUser(ctx context.Context) (res *User, err error)
 	UpdateLoggedInUser(ctx context.Context, user *User) (res *User, err error)
@@ -112,6 +113,8 @@ type FunctionName string
 const (
 	// FunctionGetOwnerToken is the name of the getOwnerToken function
 	FunctionGetOwnerToken FunctionName = "getOwnerToken"
+	// FunctionGetIDEResourcesToken is the name of the getIDEResourcesToken function
+	FunctionGetIDEResourcesToken FunctionName = "getIDEResourcesToken"
 	// FunctionAdminBlockUser is the name of the adminBlockUser function
 	FunctionAdminBlockUser FunctionName = "adminBlockUser"
 	// FunctionGetLoggedInUser is the name of the getLoggedInUser function
@@ -415,6 +418,23 @@ func (gp *APIoverJSONRPC) GetOwnerToken(ctx context.Context, workspaceID string)
 
 	var _result string
 	err = gp.C.Call(ctx, "getOwnerToken", _params, &_result)
+	if err != nil {
+		return "", err
+	}
+	res = _result
+	return
+}
+
+func (gp *APIoverJSONRPC) GetIDEResourcesToken(ctx context.Context, workspaceID string) (res string, err error) {
+	if gp == nil {
+		err = errNotConnected
+		return
+	}
+	var _params []interface{}
+	_params = append(_params, workspaceID)
+
+	var _result string
+	err = gp.C.Call(ctx, "getIDEResourcesToken", _params, &_result)
 	if err != nil {
 		return "", err
 	}
