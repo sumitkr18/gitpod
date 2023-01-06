@@ -610,31 +610,6 @@ spec:
   selfSigned: {}
 status: {}
 ---
-# cert-manager.io/v1/Certificate builtin-registry-certs
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: docker-registry
-  name: builtin-registry-certs
-  namespace: default
-spec:
-  dnsNames:
-  - registry.default.svc.cluster.local
-  duration: 2160h0m0s
-  issuerRef:
-    group: cert-manager.io
-    kind: Issuer
-    name: ca-issuer
-  secretName: builtin-registry-certs
-  secretTemplate:
-    labels:
-      app: gitpod
-      component: docker-registry
-status: {}
----
 # cert-manager.io/v1/Certificate builtin-registry-facade-cert
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -841,7 +816,7 @@ metadata:
   name: dashboard
   namespace: default
 ---
-# v1/ServiceAccount db
+# v1/ServiceAccount dbinit
 apiVersion: v1
 automountServiceAccountToken: true
 kind: ServiceAccount
@@ -849,20 +824,8 @@ metadata:
   creationTimestamp: null
   labels:
     app: gitpod
-    component: db
-  name: db
-  namespace: default
----
-# v1/ServiceAccount docker-registry
-apiVersion: v1
-automountServiceAccountToken: true
-kind: ServiceAccount
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: docker-registry
-  name: docker-registry
+    component: dbinit
+  name: dbinit
   namespace: default
 ---
 # v1/ServiceAccount gitpod
@@ -949,22 +912,6 @@ metadata:
   name: migrations
   namespace: default
 ---
-# v1/ServiceAccount minio
-# Source: minio/charts/minio/templates/serviceaccount.yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: minio
-  namespace: "default"
-  labels:
-    app.kubernetes.io/name: minio
-    helm.sh/chart: minio-11.10.24
-    app.kubernetes.io/instance: minio
-    app.kubernetes.io/managed-by: Helm
-automountServiceAccountToken: true
-secrets:
-  - name: minio
----
 # v1/ServiceAccount nobody
 apiVersion: v1
 automountServiceAccountToken: true
@@ -1028,6 +975,18 @@ metadata:
 automountServiceAccountToken: true
 secrets:
   - name: messagebus
+---
+# v1/ServiceAccount refresh-credential
+apiVersion: v1
+automountServiceAccountToken: true
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    app: gitpod
+    component: refresh-credential
+  name: refresh-credential
+  namespace: default
 ---
 # v1/ServiceAccount registry-facade
 apiVersion: v1
@@ -1113,36 +1072,6 @@ metadata:
   name: ws-proxy
   namespace: default
 ---
-# v1/Secret builtin-registry-auth
-apiVersion: v1
-data:
-  .dockerconfigjson: eyJhdXRocyI6eyJyZWdpc3RyeS5naXRwb2QuZXhhbXBsZS5jb20iOnsiYXV0aCI6ImVIZDVRMGRsTlZVd1RrRnFObFZsYVhFM1RqQTZWbE5UYkcxaFMxZFFhaTVRVVhCdFZXWnNWR1E9In19fQ==
-  password: VlNTbG1hS1dQai5QUXBtVWZsVGQ=
-  user: eHd5Q0dlNVUwTkFqNlVlaXE3TjA=
-kind: Secret
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: docker-registry
-  name: builtin-registry-auth
-  namespace: default
-type: kubernetes.io/dockerconfigjson
----
-# v1/Secret db-password
-apiVersion: v1
-data:
-  mysql-password: akJ6Vk1lMnc0WWk3R2FnYWRzeUI=
-  mysql-root-password: UEhlak1mc0x2ZkxjRzFEcnM0MGg=
-kind: Secret
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: db
-  name: db-password
-  namespace: default
----
 # v1/Secret load-definition
 # Source: rabbitmq/charts/rabbitmq/templates/secrets.yaml
 apiVersion: v1
@@ -1220,42 +1149,6 @@ metadata:
   name: messagebus-erlang-cookie
   namespace: default
 ---
-# v1/Secret minio
-# Source: minio/charts/minio/templates/secrets.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: minio
-  namespace: "default"
-  labels:
-    app.kubernetes.io/name: minio
-    helm.sh/chart: minio-11.10.24
-    app.kubernetes.io/instance: minio
-    app.kubernetes.io/managed-by: Helm
-type: Opaque
-data:
-  root-user: "UkJqaTZSMGJHRzgxZ3lFeWUyNVA="
-  root-password: "dFg2TUw4Z0NXMzFtaXcwVDhRTUk="
-  key.json: ""
----
-# v1/Secret mysql
-apiVersion: v1
-data:
-  database: Z2l0cG9k
-  encryptionKeys: WwogIHsKICAgICJuYW1lIjogImdlbmVyYWwiLAogICAgInZlcnNpb24iOiAxLAogICAgInByaW1hcnkiOiB0cnVlLAogICAgIm1hdGVyaWFsIjogIjR1R2gxcTh5MkRZcnlKd3JWTUhzMGtXWEpscXZIV1d0L0tKdU5pMDRlZEk9IgogIH0KXQ==
-  host: ZGI=
-  password: akJ6Vk1lMnc0WWk3R2FnYWRzeUI=
-  port: MzMwNg==
-  username: Z2l0cG9k
-kind: Secret
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: db
-  name: mysql
-  namespace: default
----
 # v1/Secret rabbitmq
 # Source: rabbitmq/charts/rabbitmq/templates/secrets.yaml
 apiVersion: v1
@@ -1272,24 +1165,6 @@ type: Opaque
 stringData:
   password: uq4KxOLtrA-QsDTfuwQ-
   username: gitpod
----
-# v1/Secret registry-secret
-# Source: docker-registry/charts/docker-registry/templates/secret.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: registry-secret
-  namespace: default
-  labels:
-    app: docker-registry
-    chart: docker-registry-2.2.2
-    heritage: Helm
-    release: docker-registry
-type: Opaque
-data:
-  haSharedSecret: "a2pjcXpkdHRjd3BRY3Brcw=="
-  proxyUsername: ""
-  proxyPassword: ""
 ---
 # v1/ConfigMap agent-smith
 apiVersion: v1
@@ -1326,7 +1201,7 @@ data:
         "port": 32224,
         "timeout": "5s",
         "repos": {
-          "registry.mydomain.com/namespace/ide/code": {
+          "eu.gcr.io/gitpod-core-dev/build/ide/code": {
             "workdir": "/ide",
             "replacements": [
               {
@@ -1388,7 +1263,7 @@ data:
               }
             ]
           },
-          "registry.mydomain.com/namespace/supervisor": {
+          "eu.gcr.io/gitpod-core-dev/build/supervisor": {
             "workdir": "/.supervisor/frontend"
           }
         },
@@ -1422,20 +1297,24 @@ data:
       },
       "storage": {
         "stage": "",
-        "kind": "minio",
+        "kind": "s3",
         "gcloud": {
           "credentialsFile": "",
           "region": "",
           "projectId": ""
         },
         "minio": {
-          "endpoint": "minio.default.svc.cluster.local:9000",
-          "accessKey": "RBji6R0bGG81gyEye25P",
+          "endpoint": "",
+          "accessKey": "",
           "accessKeyFile": "",
-          "secretKey": "tX6ML8gCW31miw0T8QMI",
+          "secretKey": "",
           "secretKeyFile": "",
-          "region": "local",
-          "parallelUpload": 6
+          "region": ""
+        },
+        "s3": {
+          "bucket": "s3-bucket",
+          "region": "eu-west-2",
+          "credentialsFile": ""
         },
         "blobQuota": 5368709120
       }
@@ -1453,7 +1332,7 @@ metadata:
 apiVersion: v1
 data:
   init.sql: |
-    -- 01-create-and-init-sessions-db.sql
+    -- 00-create-and-init-sessions-db.sql
 
     -- Copyright (c) 2020 Gitpod GmbH. All rights reserved.
     -- Licensed under the GNU Affero General Public License (AGPL). See License.AGPL.txt in the project root for license information.
@@ -1471,36 +1350,12 @@ data:
        `_lastModified` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
        PRIMARY KEY (`session_id`)
     );
-
-    -- Grant privileges
-    GRANT ALL ON `gitpod-sessions`.* TO "gitpod"@"%";
-    -- 02-recreate-gitpod-db.sql
-
-    -- Copyright (c) 2020 Gitpod GmbH. All rights reserved.
-    -- Licensed under the GNU Affero General Public License (AGPL). See License.AGPL.txt in the project root for license information.
-
-    -- must be idempotent
-
-    -- @gitpodDB contains name of the DB the script manipulates, and is replaced by the file reader
-    SET
-    @gitpodDB = IFNULL(@gitpodDB, '`gitpod`');
-
-    SET
-    @statementStr = CONCAT('DROP DATABASE IF EXISTS ', @gitpodDB);
-    PREPARE statement FROM @statementStr;
-    EXECUTE statement;
-
-    SET
-    @statementStr = CONCAT('CREATE DATABASE ', @gitpodDB, ' CHARSET utf8mb4');
-    PREPARE statement FROM @statementStr;
-    EXECUTE statement;
-  tuneMysql.sql: SET GLOBAL innodb_lru_scan_depth=256;
 kind: ConfigMap
 metadata:
   creationTimestamp: null
   labels:
     app: gitpod
-    component: db
+    component: dbinit
   name: db-init-scripts
   namespace: default
 ---
@@ -1517,26 +1372,47 @@ data:
       kind: secret
       name: https-certificates
     containerRegistry:
-      inCluster: true
+      external:
+        certificate:
+          kind: secret
+          name: aws-ecr-credential
+        credentials:
+          kind: secret
+          name: aws-storage
+        url: 012345678969.dkr.ecr.eu-west-2.amazonaws.com
+      inCluster: false
       privateBaseImageAllowList: []
+      s3storage:
+        bucket: s3-container-registry
+        endpoint: registry.amazonaws.com
+        region: eu-west-2
     database:
-      inCluster: true
+      external:
+        certificate:
+          kind: secret
+          name: aws-database
+      inCluster: false
     disableDefinitelyGp: true
     domain: gitpod.example.com
     kind: Full
     metadata:
-      region: local
+      region: eu-west-2
       shortname: default
     objectStorage:
-      inCluster: true
+      inCluster: false
       resources:
         requests:
           memory: 2Gi
+      s3:
+        allowInsecureConnection: false
+        bucket: s3-bucket
+        credentials: null
+        endpoint: s3.amazonaws.com
     observability:
       logLevel: info
     openVSX:
       url: https://open-vsx.org
-    repository: registry.mydomain.com/namespace
+    repository: eu.gcr.io/gitpod-core-dev/build
     workspace:
       maxLifetime: 36h0m0s
       prebuildPVC:
@@ -1753,46 +1629,6 @@ metadata:
 apiVersion: v1
 data:
   app.yaml: |
-    apiVersion: cert-manager.io/v1
-    kind: Certificate
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: docker-registry
-      name: builtin-registry-certs
-      namespace: default
-    ---
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: RoleBinding
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: docker-registry
-      name: docker-registry
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: docker-registry
-      name: builtin-registry-auth
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: docker-registry
-      name: docker-registry
-      namespace: default
-    ---
     apiVersion: cert-manager.io/v1
     kind: Issuer
     metadata:
@@ -2451,7 +2287,7 @@ data:
       creationTimestamp: null
       labels:
         app: gitpod
-        component: db
+        component: dbinit
       name: db-init-scripts
       namespace: default
     ---
@@ -2461,38 +2297,8 @@ data:
       creationTimestamp: null
       labels:
         app: gitpod
-        component: db
-      name: db
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: db
-      name: db-password
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: db
-      name: mysql
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: db
-      name: db
+        component: dbinit
+      name: dbinit
       namespace: default
     ---
     apiVersion: v1
@@ -2501,8 +2307,8 @@ data:
       creationTimestamp: null
       labels:
         app: gitpod
-        component: db
-      name: db
+        component: dbinit
+      name: dbinit
       namespace: default
     ---
     apiVersion: rbac.authorization.k8s.io/v1
@@ -3426,115 +3232,43 @@ data:
       namespace: default
     ---
     apiVersion: v1
-    kind: Secret
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: docker-registry
-        chart: docker-registry-2.2.2
-        heritage: Helm
-        release: docker-registry
-      name: registry-secret
-      namespace: default
-    ---
-    apiVersion: v1
     kind: ConfigMap
     metadata:
       creationTimestamp: null
       labels:
-        app: docker-registry
-        chart: docker-registry-2.2.2
-        heritage: Helm
-        release: docker-registry
-      name: registry-config
+        app: gitpod
+        component: refresh-credential
+      name: refresh-credential
       namespace: default
     ---
-    apiVersion: v1
-    kind: PersistentVolumeClaim
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
     metadata:
       creationTimestamp: null
       labels:
-        app: registry
-        chart: docker-registry-2.2.2
-        heritage: Helm
-        release: docker-registry
-      name: registry
+        app: gitpod
+        component: refresh-credential
+      name: refresh-credential
       namespace: default
     ---
-    apiVersion: v1
-    kind: Service
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
     metadata:
       creationTimestamp: null
       labels:
-        app: docker-registry
-        chart: docker-registry-2.2.2
-        heritage: Helm
-        release: docker-registry
-      name: registry
+        app: gitpod
+        component: refresh-credential
+      name: refresh-credential
       namespace: default
     ---
-    apiVersion: apps/v1
-    kind: Deployment
+    apiVersion: batch/v1
+    kind: CronJob
     metadata:
       creationTimestamp: null
       labels:
-        app: docker-registry
-        chart: docker-registry-2.2.2
-        heritage: Helm
-        release: docker-registry
-      name: registry
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      creationTimestamp: null
-      labels:
-        app.kubernetes.io/component: primary
-        app.kubernetes.io/instance: mysql
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: mysql
-        helm.sh/chart: mysql-9.4.5
-      name: mysql
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-      creationTimestamp: null
-      labels:
-        app.kubernetes.io/component: primary
-        app.kubernetes.io/instance: mysql
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: mysql
-        helm.sh/chart: mysql-9.4.5
-      name: mysql-headless
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-      creationTimestamp: null
-      labels:
-        app.kubernetes.io/component: primary
-        app.kubernetes.io/instance: mysql
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: mysql
-        helm.sh/chart: mysql-9.4.5
-      name: mysql
-      namespace: default
-    ---
-    apiVersion: apps/v1
-    kind: StatefulSet
-    metadata:
-      creationTimestamp: null
-      labels:
-        app.kubernetes.io/component: primary
-        app.kubernetes.io/instance: mysql
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: mysql
-        helm.sh/chart: mysql-9.4.5
-      name: mysql
+        app: gitpod
+        component: refresh-credential
+      name: refresh-credential
       namespace: default
     ---
     apiVersion: v1
@@ -3542,59 +3276,9 @@ data:
     metadata:
       creationTimestamp: null
       labels:
-        app.kubernetes.io/instance: minio
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: minio
-        helm.sh/chart: minio-11.10.24
-      name: minio
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      creationTimestamp: null
-      labels:
-        app.kubernetes.io/instance: minio
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: minio
-        helm.sh/chart: minio-11.10.24
-      name: minio
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      creationTimestamp: null
-      labels:
-        app.kubernetes.io/instance: minio
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: minio
-        helm.sh/chart: minio-11.10.24
-      name: minio
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-      creationTimestamp: null
-      labels:
-        app.kubernetes.io/instance: minio
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: minio
-        helm.sh/chart: minio-11.10.24
-      name: minio
-      namespace: default
-    ---
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      creationTimestamp: null
-      labels:
-        app.kubernetes.io/instance: minio
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: minio
-        helm.sh/chart: minio-11.10.24
-      name: minio
+        app: gitpod
+        component: refresh-credential
+      name: refresh-credential
       namespace: default
     ---
     apiVersion: networking.k8s.io/v1
@@ -3793,7 +3477,7 @@ data:
   config.json: |-
     {
       "gpRunImage": "registry.hub.docker.com/gitpod/gp-run:latest",
-      "supervisorImage": "registry.mydomain.com/namespace/supervisor:test",
+      "supervisorImage": "eu.gcr.io/gitpod-core-dev/build/supervisor:test",
       "ideOptions": {
         "options": {
           "clion": {
@@ -3801,17 +3485,17 @@ data:
             "title": "CLion",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/clionLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/clion:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/clion:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/clion:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/clion:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "code": {
@@ -3820,33 +3504,33 @@ data:
             "type": "browser",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/vscode.svg",
             "label": "Browser",
-            "image": "registry.mydomain.com/namespace/ide/code:commit-fdf6a08a681c53ddd97c7bae9acc7d49158a41a0",
-            "latestImage": "registry.mydomain.com/namespace/ide/code:nightly"
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/code:commit-fdf6a08a681c53ddd97c7bae9acc7d49158a41a0",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/code:nightly"
           },
           "code-desktop": {
             "orderKey": "02",
             "title": "VS Code",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/vscode.svg",
-            "image": "registry.mydomain.com/namespace/ide/code-desktop:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/code-desktop-insiders:test"
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/code-desktop:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/code-desktop-insiders:test"
           },
           "goland": {
             "orderKey": "05",
             "title": "GoLand",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/golandLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/goland:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/goland:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/goland:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/goland:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "intellij": {
@@ -3855,17 +3539,17 @@ data:
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/intellijIdeaLogo.svg",
             "label": "Ultimate",
-            "image": "registry.mydomain.com/namespace/ide/intellij:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/intellij:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/intellij:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/intellij:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "phpstorm": {
@@ -3873,17 +3557,17 @@ data:
             "title": "PhpStorm",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/phpstormLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/phpstorm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/phpstorm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/phpstorm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/phpstorm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "pycharm": {
@@ -3892,17 +3576,17 @@ data:
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/pycharmLogo.svg",
             "label": "Professional",
-            "image": "registry.mydomain.com/namespace/ide/pycharm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/pycharm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/pycharm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/pycharm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "rider": {
@@ -3910,17 +3594,17 @@ data:
             "title": "Rider",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/riderLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/rider:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/rider:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/rider:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/rider:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "rubymine": {
@@ -3928,17 +3612,17 @@ data:
             "title": "RubyMine",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/rubymineLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/rubymine:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/rubymine:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/rubymine:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/rubymine:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "webstorm": {
@@ -3946,17 +3630,17 @@ data:
             "title": "WebStorm",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/webstormLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/webstorm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/webstorm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/webstorm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/webstorm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           }
         },
@@ -5058,16 +4742,16 @@ data:
             "key": "/wsman-certs/tls.key"
           }
         },
-        "pullSecret": "builtin-registry-auth",
+        "pullSecret": "aws-ecr-credential",
         "pullSecretFile": "/config/pull-secret/pull-secret.json",
-        "baseImageRepository": "registry.gitpod.example.com/base-images",
-        "workspaceImageRepository": "registry.gitpod.example.com/workspace-images",
-        "builderImage": "registry.mydomain.com/namespace/image-builder-mk3/bob:test"
+        "baseImageRepository": "012345678969.dkr.ecr.eu-west-2.amazonaws.com/base-images",
+        "workspaceImageRepository": "012345678969.dkr.ecr.eu-west-2.amazonaws.com/workspace-images",
+        "builderImage": "eu.gcr.io/gitpod-core-dev/build/image-builder-mk3/bob:test"
       },
       "refCache": {
         "interval": "6h0m0s",
         "refs": [
-          "registry.mydomain.com/namespace/gitpod/workspace-full:latest"
+          "docker.io/gitpod/workspace-full:latest"
         ]
       },
       "server": {
@@ -5086,52 +4770,6 @@ metadata:
     component: image-builder-mk3
   name: image-builder-mk3-config
   namespace: default
----
-# v1/ConfigMap mysql
-# Source: mysql/charts/mysql/templates/primary/configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: mysql
-  namespace: "default"
-  labels:
-    app.kubernetes.io/name: mysql
-    helm.sh/chart: mysql-9.4.5
-    app.kubernetes.io/instance: mysql
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/component: primary
-data:
-  my.cnf: |-
-    [mysqld]
-    default_authentication_plugin=mysql_native_password
-    skip-name-resolve
-    explicit_defaults_for_timestamp
-    basedir=/opt/bitnami/mysql
-    plugin_dir=/opt/bitnami/mysql/lib/plugin
-    port=3306
-    socket=/opt/bitnami/mysql/tmp/mysql.sock
-    datadir=/bitnami/mysql/data
-    tmpdir=/opt/bitnami/mysql/tmp
-    max_allowed_packet=16M
-    bind-address=*
-    pid-file=/opt/bitnami/mysql/tmp/mysqld.pid
-    log-error=/opt/bitnami/mysql/logs/mysqld.log
-    character-set-server=UTF8
-    collation-server=utf8_general_ci
-    slow_query_log=0
-    slow_query_log_file=/opt/bitnami/mysql/logs/mysqld.log
-    long_query_time=10.0
-    
-    [client]
-    port=3306
-    socket=/opt/bitnami/mysql/tmp/mysql.sock
-    default-character-set=UTF8
-    plugin_dir=/opt/bitnami/mysql/lib/plugin
-    
-    [manager]
-    port=3306
-    socket=/opt/bitnami/mysql/tmp/mysql.sock
-    pid-file=/opt/bitnami/mysql/tmp/mysqld.pid
 ---
 # v1/ConfigMap openvsx-proxy-config
 apiVersion: v1
@@ -5164,23 +4802,6 @@ metadata:
 # v1/ConfigMap proxy-config
 apiVersion: v1
 data:
-  vhost.docker-registry: |-
-    https://registry.gitpod.example.com {
-        import enable_log
-        import remove_server_header
-        import ssl_configuration
-
-        basicauth bcrypt "Docker Registry" {
-            xwyCGe5U0NAj6Ueiq7N0 JDJhJDEwJFFTRGRRMHZZY2pIS2JqUC9aMDNnVC5CY0M3RDZsVVg0LzBpZmdnTGovT0VVWXoxTG8ud0lX
-        }
-
-        reverse_proxy https://registry.default.svc.cluster.local {
-            flush_interval -1
-            transport http {
-                tls_trusted_ca_certs /etc/caddy/registry-certs/ca.crt
-            }
-        }
-    }
   vhost.empty: '# Placeholder to avoid errors loading files using a glob pattern'
   vhost.ide-proxy: |
     https://ide.gitpod.example.com {
@@ -5274,42 +4895,25 @@ metadata:
   name: public-api-server
   namespace: default
 ---
-# v1/ConfigMap registry-config
-# Source: docker-registry/charts/docker-registry/templates/configmap.yaml
+# v1/ConfigMap refresh-credential
 apiVersion: v1
+data:
+  config.json: |-
+    {
+      "namespace": "default",
+      "credentialsFile": "/mnt/secrets/storage/credentials",
+      "region": "eu-west-2",
+      "publicRegistry": false,
+      "secretToUpdate": "aws-ecr-credential"
+    }
 kind: ConfigMap
 metadata:
-  name: registry-config
-  namespace: default
+  creationTimestamp: null
   labels:
-    app: docker-registry
-    chart: docker-registry-2.2.2
-    heritage: Helm
-    release: docker-registry
-data:
-  config.yml: |-
-    health:
-      storagedriver:
-        enabled: true
-        interval: 10s
-        threshold: 3
-    http:
-      addr: :5000
-      debug:
-        addr: :5001
-        prometheus:
-          enabled: false
-          path: /metrics
-      headers:
-        X-Content-Type-Options:
-        - nosniff
-    log:
-      fields:
-        service: registry
-    storage:
-      cache:
-        blobdescriptor: inmemory
-    version: 0.1
+    app: gitpod
+    component: refresh-credential
+  name: refresh-credential
+  namespace: default
 ---
 # v1/ConfigMap registry-facade
 apiVersion: v1
@@ -5321,15 +4925,15 @@ data:
         "prefix": "",
         "staticLayer": [
           {
-            "ref": "registry.mydomain.com/namespace/supervisor:test",
+            "ref": "eu.gcr.io/gitpod-core-dev/build/supervisor:test",
             "type": "image"
           },
           {
-            "ref": "registry.mydomain.com/namespace/workspacekit:test",
+            "ref": "eu.gcr.io/gitpod-core-dev/build/workspacekit:test",
             "type": "image"
           },
           {
-            "ref": "registry.mydomain.com/namespace/docker-up:test",
+            "ref": "eu.gcr.io/gitpod-core-dev/build/docker-up:test",
             "type": "image"
           }
         ],
@@ -5400,7 +5004,7 @@ data:
         "timeoutSeconds": 300
       },
       "workspaceDefaults": {
-        "workspaceImage": "registry.mydomain.com/namespace/gitpod/workspace-full:latest",
+        "workspaceImage": "docker.io/gitpod/workspace-full:latest",
         "previewFeatureFlags": [],
         "defaultFeatureFlags": []
       },
@@ -5509,7 +5113,7 @@ data:
   config.json: |-
     {
       "gpRunImage": "registry.hub.docker.com/gitpod/gp-run:latest",
-      "supervisorImage": "registry.mydomain.com/namespace/supervisor:test",
+      "supervisorImage": "eu.gcr.io/gitpod-core-dev/build/supervisor:test",
       "ideOptions": {
         "options": {
           "clion": {
@@ -5517,17 +5121,17 @@ data:
             "title": "CLion",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/clionLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/clion:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/clion:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/clion:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/clion:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "code": {
@@ -5536,33 +5140,33 @@ data:
             "type": "browser",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/vscode.svg",
             "label": "Browser",
-            "image": "registry.mydomain.com/namespace/ide/code:commit-fdf6a08a681c53ddd97c7bae9acc7d49158a41a0",
-            "latestImage": "registry.mydomain.com/namespace/ide/code:nightly"
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/code:commit-fdf6a08a681c53ddd97c7bae9acc7d49158a41a0",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/code:nightly"
           },
           "code-desktop": {
             "orderKey": "02",
             "title": "VS Code",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/vscode.svg",
-            "image": "registry.mydomain.com/namespace/ide/code-desktop:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/code-desktop-insiders:test"
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/code-desktop:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/code-desktop-insiders:test"
           },
           "goland": {
             "orderKey": "05",
             "title": "GoLand",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/golandLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/goland:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/goland:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/goland:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/goland:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "intellij": {
@@ -5571,17 +5175,17 @@ data:
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/intellijIdeaLogo.svg",
             "label": "Ultimate",
-            "image": "registry.mydomain.com/namespace/ide/intellij:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/intellij:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/intellij:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/intellij:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "phpstorm": {
@@ -5589,17 +5193,17 @@ data:
             "title": "PhpStorm",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/phpstormLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/phpstorm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/phpstorm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/phpstorm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/phpstorm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "pycharm": {
@@ -5608,17 +5212,17 @@ data:
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/pycharmLogo.svg",
             "label": "Professional",
-            "image": "registry.mydomain.com/namespace/ide/pycharm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/pycharm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/pycharm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/pycharm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "rider": {
@@ -5626,17 +5230,17 @@ data:
             "title": "Rider",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/riderLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/rider:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/rider:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/rider:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/rider:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "rubymine": {
@@ -5644,17 +5248,17 @@ data:
             "title": "RubyMine",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/rubymineLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/rubymine:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/rubymine:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/rubymine:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/rubymine:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "webstorm": {
@@ -5662,17 +5266,17 @@ data:
             "title": "WebStorm",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/webstormLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/webstorm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/webstorm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/webstorm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/webstorm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           }
         },
@@ -5764,20 +5368,24 @@ data:
           "tempDir": "/tmp",
           "storage": {
             "stage": "",
-            "kind": "minio",
+            "kind": "s3",
             "gcloud": {
               "credentialsFile": "",
               "region": "",
               "projectId": ""
             },
             "minio": {
-              "endpoint": "minio.default.svc.cluster.local:9000",
-              "accessKey": "RBji6R0bGG81gyEye25P",
+              "endpoint": "",
+              "accessKey": "",
               "accessKeyFile": "",
-              "secretKey": "tX6ML8gCW31miw0T8QMI",
+              "secretKey": "",
               "secretKeyFile": "",
-              "region": "local",
-              "parallelUpload": 6
+              "region": ""
+            },
+            "s3": {
+              "bucket": "s3-bucket",
+              "region": "eu-west-2",
+              "credentialsFile": ""
             },
             "blobQuota": 5368709120
           },
@@ -5948,20 +5556,24 @@ data:
       "content": {
         "storage": {
           "stage": "",
-          "kind": "minio",
+          "kind": "s3",
           "gcloud": {
             "credentialsFile": "",
             "region": "",
             "projectId": ""
           },
           "minio": {
-            "endpoint": "minio.default.svc.cluster.local:9000",
-            "accessKey": "RBji6R0bGG81gyEye25P",
+            "endpoint": "",
+            "accessKey": "",
             "accessKeyFile": "",
-            "secretKey": "tX6ML8gCW31miw0T8QMI",
+            "secretKey": "",
             "secretKeyFile": "",
-            "region": "local",
-            "parallelUpload": 6
+            "region": ""
+          },
+          "s3": {
+            "bucket": "s3-bucket",
+            "region": "eu-west-2",
+            "credentialsFile": ""
           },
           "blobQuota": 5368709120
         }
@@ -6083,7 +5695,7 @@ data:
         "workspacePodConfig": {
           "theiaPort": 23000,
           "supervisorPort": 22999,
-          "supervisorImage": "registry.mydomain.com/namespace/supervisor:test"
+          "supervisorImage": "eu.gcr.io/gitpod-core-dev/build/supervisor:test"
         },
         "builtinPages": {
           "location": "/app/public"
@@ -6110,44 +5722,6 @@ metadata:
     component: ws-proxy
   name: ws-proxy
   namespace: default
----
-# v1/PersistentVolumeClaim minio
-# Source: minio/charts/minio/templates/pvc.yaml
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: minio
-  namespace: "default"
-  labels:
-    app.kubernetes.io/name: minio
-    helm.sh/chart: minio-11.10.24
-    app.kubernetes.io/instance: minio
-    app.kubernetes.io/managed-by: Helm
-spec:
-  accessModes:
-    - "ReadWriteOnce"
-  resources:
-    requests:
-      storage: "8Gi"
----
-# v1/PersistentVolumeClaim registry
-# Source: docker-registry/charts/docker-registry/templates/pvc.yaml
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: registry
-  namespace: default
-  labels:
-    app: registry
-    chart: "docker-registry-2.2.2"
-    release: "docker-registry"
-    heritage: "Helm"
-spec:
-  accessModes:
-    - "ReadWriteOnce"
-  resources:
-    requests:
-      storage: "10Gi"
 ---
 # rbac.authorization.k8s.io/v1/ClusterRole default-kube-rbac-proxy
 apiVersion: rbac.authorization.k8s.io/v1
@@ -6677,6 +6251,28 @@ rules:
     resources: ["events"]
     verbs: ["create"]
 ---
+# rbac.authorization.k8s.io/v1/Role refresh-credential
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  labels:
+    app: gitpod
+    component: refresh-credential
+  name: refresh-credential
+  namespace: default
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+---
 # rbac.authorization.k8s.io/v1/Role server
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -6858,15 +6454,15 @@ subjects:
 - kind: ServiceAccount
   name: dashboard
 ---
-# rbac.authorization.k8s.io/v1/RoleBinding db
+# rbac.authorization.k8s.io/v1/RoleBinding dbinit
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   creationTimestamp: null
   labels:
     app: gitpod
-    component: db
-  name: db
+    component: dbinit
+  name: dbinit
   namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -6874,7 +6470,7 @@ roleRef:
   name: default-ns-psp:restricted-root-user
 subjects:
 - kind: ServiceAccount
-  name: db
+  name: dbinit
 ---
 # rbac.authorization.k8s.io/v1/RoleBinding default-ns-nobody
 apiVersion: rbac.authorization.k8s.io/v1
@@ -6891,24 +6487,6 @@ subjects:
 - kind: ServiceAccount
   name: nobody
   namespace: default
----
-# rbac.authorization.k8s.io/v1/RoleBinding docker-registry
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: docker-registry
-  name: docker-registry
-  namespace: default
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: default-ns-psp:restricted-root-user
-subjects:
-- kind: ServiceAccount
-  name: docker-registry
 ---
 # rbac.authorization.k8s.io/v1/RoleBinding gitpod
 apiVersion: rbac.authorization.k8s.io/v1
@@ -7146,6 +6724,24 @@ subjects:
 - kind: ServiceAccount
   name: rabbitmq
 ---
+# rbac.authorization.k8s.io/v1/RoleBinding refresh-credential
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    app: gitpod
+    component: refresh-credential
+  name: refresh-credential
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: refresh-credential
+subjects:
+- kind: ServiceAccount
+  name: refresh-credential
+---
 # rbac.authorization.k8s.io/v1/RoleBinding server
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -7366,27 +6962,6 @@ spec:
 status:
   loadBalancer: {}
 ---
-# v1/Service db
-apiVersion: v1
-kind: Service
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: db
-  name: db
-  namespace: default
-spec:
-  ports:
-  - port: 3306
-    protocol: TCP
-    targetPort: 3306
-  selector:
-    app.kubernetes.io/name: mysql
-  type: ClusterIP
-status:
-  loadBalancer: {}
----
 # v1/Service iam
 apiVersion: v1
 kind: Service
@@ -7590,87 +7165,6 @@ spec:
     app.kubernetes.io/instance: rabbitmq
   publishNotReadyAddresses: true
 ---
-# v1/Service minio
-# Source: minio/charts/minio/templates/service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: minio
-  namespace: "default"
-  labels:
-    app.kubernetes.io/name: minio
-    helm.sh/chart: minio-11.10.24
-    app.kubernetes.io/instance: minio
-    app.kubernetes.io/managed-by: Helm
-spec:
-  type: ClusterIP
-  ports:
-    - name: minio-api
-      port: 9000
-      targetPort: minio-api
-      nodePort: null
-    - name: minio-console
-      port: 9001
-      targetPort: minio-console
-      nodePort: null
-  selector:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/instance: minio
----
-# v1/Service mysql
-# Source: mysql/charts/mysql/templates/primary/svc.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: mysql
-  namespace: "default"
-  labels:
-    app.kubernetes.io/name: mysql
-    helm.sh/chart: mysql-9.4.5
-    app.kubernetes.io/instance: mysql
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/component: primary
-  annotations:
-spec:
-  type: ClusterIP
-  sessionAffinity: None
-  ports:
-    - name: mysql
-      port: 3306
-      protocol: TCP
-      targetPort: mysql
-      nodePort: null
-  selector: 
-    app.kubernetes.io/name: mysql
-    app.kubernetes.io/instance: mysql
-    app.kubernetes.io/component: primary
----
-# v1/Service mysql-headless
-# Source: mysql/charts/mysql/templates/primary/svc-headless.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: mysql-headless
-  namespace: "default"
-  labels:
-    app.kubernetes.io/name: mysql
-    helm.sh/chart: mysql-9.4.5
-    app.kubernetes.io/instance: mysql
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/component: primary
-spec:
-  type: ClusterIP
-  clusterIP: None
-  publishNotReadyAddresses: true
-  ports:
-    - name: mysql
-      port: 3306
-      targetPort: mysql
-  selector: 
-    app.kubernetes.io/name: mysql
-    app.kubernetes.io/instance: mysql
-    app.kubernetes.io/component: primary
----
 # v1/Service openvsx-proxy
 apiVersion: v1
 kind: Service
@@ -7761,29 +7255,6 @@ spec:
   type: ClusterIP
 status:
   loadBalancer: {}
----
-# v1/Service registry
-# Source: docker-registry/charts/docker-registry/templates/service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: registry
-  namespace: default
-  labels:
-    app: docker-registry
-    chart: docker-registry-2.2.2
-    release: docker-registry
-    heritage: Helm
-spec:
-  type: ClusterIP
-  ports:
-    - port: 443
-      protocol: TCP
-      name: https-443
-      targetPort: 5000
-  selector:
-    app: docker-registry
-    release: docker-registry
 ---
 # v1/Service registry-facade
 apiVersion: v1
@@ -7979,7 +7450,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -7996,7 +7467,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: registry.mydomain.com/namespace/agent-smith:test
+        image: eu.gcr.io/gitpod-core-dev/build/agent-smith:test
         imagePullPolicy: IfNotPresent
         name: agent-smith
         resources:
@@ -8018,7 +7489,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -8068,7 +7539,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: c89ca2c9729c189ef1739d1bfc113c8c52bc46f8155c4a9b195ccd4de910a23b
+        gitpod.io/checksum_config: 627e2d5a5d50e8eb2531bd494ceb9cd26315e43008248fb6825dfc2b5189a3d3
       creationTimestamp: null
       labels:
         app: gitpod
@@ -8095,7 +7566,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -8114,7 +7585,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: registry.mydomain.com/namespace/registry-facade:test
+        image: eu.gcr.io/gitpod-core-dev/build/registry-facade:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -8169,7 +7640,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -8193,7 +7664,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: registry.mydomain.com/namespace/registry-facade:test
+        image: eu.gcr.io/gitpod-core-dev/build/registry-facade:test
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -8221,7 +7692,7 @@ spec:
         - -c
         - set -e; update-ca-certificates -f; cp /etc/ssl/certs/* /ssl-certs; echo
           'OK'
-        image: registry.mydomain.com/namespace/ca-updater:test
+        image: eu.gcr.io/gitpod-core-dev/build/ca-updater:test
         imagePullPolicy: IfNotPresent
         name: update-ca-certificates
         resources: {}
@@ -8249,7 +7720,7 @@ spec:
           items:
           - key: .dockerconfigjson
             path: pull-secret.json
-          secretName: builtin-registry-auth
+          secretName: aws-ecr-credential
       - hostPath:
           path: /
         name: hostfs
@@ -8285,7 +7756,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: 2a29ef265c219405bda658cb21613f40ad5e692590d2779476a3ff90917ed6fb
+        gitpod.io/checksum_config: 84153af31ca72bfcb1f8d80ffcb6370961b89fa0f54d64afa1d6640ed7542ce4
         seccomp.security.alpha.kubernetes.io/shiftfs-module-loader: unconfined
       creationTimestamp: null
       labels:
@@ -8313,7 +7784,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -8330,7 +7801,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: registry.mydomain.com/namespace/ws-daemon:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-daemon:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 5
@@ -8393,7 +7864,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -8417,7 +7888,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: registry.mydomain.com/namespace/ws-daemon:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-daemon:test
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -8447,7 +7918,7 @@ spec:
         - /bin/sh
         - -c
         - cp -f /installer/workspace_default.json /mnt/dst/workspace_default_pd-ide-metrics.23.json
-        image: registry.mydomain.com/namespace/seccomp-profile-installer:test
+        image: eu.gcr.io/gitpod-core-dev/build/seccomp-profile-installer:test
         name: seccomp-profile-installer
         resources: {}
         securityContext:
@@ -8463,7 +7934,7 @@ spec:
           &&\n\tsysctl -w fs.inotify.max_user_watches=1000000 &&\n\tsysctl -w \"kernel.dmesg_restrict=1\"
           &&\n\tsysctl -w vm.unprivileged_userfaultfd=0\n) && echo \"done!\" || echo
           \"failed!\"\n"
-        image: registry.mydomain.com/namespace/ws-daemon:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-daemon:test
         name: sysctl
         resources: {}
         securityContext:
@@ -8585,7 +8056,7 @@ spec:
       initContainers:
       containers:
         - name: rabbitmq
-          image: registry.mydomain.com/namespace/bitnami/rabbitmq:3.11.5-debian-11-r2
+          image: docker.io/bitnami/rabbitmq:3.11.5-debian-11-r2
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -8730,165 +8201,6 @@ spec:
         - name: data
           emptyDir: {}
 ---
-# apps/v1/StatefulSet mysql
-# Source: mysql/charts/mysql/templates/primary/statefulset.yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: mysql
-  namespace: "default"
-  labels:
-    app.kubernetes.io/name: mysql
-    helm.sh/chart: mysql-9.4.5
-    app.kubernetes.io/instance: mysql
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/component: primary
-spec:
-  replicas: 1
-  podManagementPolicy: ""
-  selector:
-    matchLabels: 
-      app.kubernetes.io/name: mysql
-      app.kubernetes.io/instance: mysql
-      app.kubernetes.io/component: primary
-  serviceName: mysql
-  updateStrategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      annotations:
-        checksum/configuration: 0c1e0d4282c8f8f820f3c9d1d79b3f423c4676afac2e3a6de555f8553f146eb4
-      labels:
-        app.kubernetes.io/name: mysql
-        helm.sh/chart: mysql-9.4.5
-        app.kubernetes.io/instance: mysql
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/component: primary
-    spec:
-      serviceAccountName: db
-      
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: gitpod.io/workload_meta
-                operator: Exists
-        
-      securityContext:
-        fsGroup: 1001
-      initContainers:
-        - name: volume-permissions
-          image: registry.mydomain.com/namespace/bitnami/bitnami-shell:11-debian-11-r60
-          imagePullPolicy: "IfNotPresent"
-          command:
-            - /bin/bash
-            - -ec
-            - |
-              mkdir -p "/bitnami/mysql"
-              chown "1001:1001" "/bitnami/mysql"
-              find "/bitnami/mysql" -mindepth 1 -maxdepth 1 -not -name ".snapshot" -not -name "lost+found" | xargs -r chown -R "1001:1001"
-          securityContext:
-            runAsUser: 0
-          volumeMounts:
-            - name: data
-              mountPath: /bitnami/mysql
-      containers:
-        - name: mysql
-          image: registry.mydomain.com/namespace/bitnami/mysql:5.7.34-debian-10-r55
-          imagePullPolicy: "IfNotPresent"
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1001
-          env:
-            - name: BITNAMI_DEBUG
-              value: "false"
-            - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: db-password
-                  key: mysql-root-password
-            - name: MYSQL_USER
-              value: "gitpod"
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: db-password
-                  key: mysql-password
-            - name: MYSQL_DATABASE
-              value: "gitpod"
-            - name: MYSQL_EXTRA_FLAGS
-              value: --explicit-defaults-for-timestamp=OFF
-          envFrom:
-          ports:
-            - name: mysql
-              containerPort: 3306
-          livenessProbe:
-            failureThreshold: 3
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
-            exec:
-              command:
-                - /bin/bash
-                - -ec
-                - |
-                  password_aux="${MYSQL_ROOT_PASSWORD:-}"
-                  if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                      password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-                  fi
-                  mysqladmin status -uroot -p"${password_aux}"
-          readinessProbe:
-            failureThreshold: 3
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
-            exec:
-              command:
-                - /bin/bash
-                - -ec
-                - |
-                  password_aux="${MYSQL_ROOT_PASSWORD:-}"
-                  if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
-                      password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
-                  fi
-                  mysqladmin status -uroot -p"${password_aux}"
-          resources: 
-            limits: {}
-            requests:
-              memory: 128Mi
-          volumeMounts:
-            - name: data
-              mountPath: /bitnami/mysql
-            - name: custom-init-scripts
-              mountPath: /docker-entrypoint-initdb.d
-            - name: config
-              mountPath: /opt/bitnami/mysql/conf/my.cnf
-              subPath: my.cnf
-      volumes:
-        - name: config
-          configMap:
-            name: mysql
-        - name: custom-init-scripts
-          configMap:
-            name: db-init-scripts
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-        labels: 
-          app.kubernetes.io/name: mysql
-          app.kubernetes.io/instance: mysql
-          app.kubernetes.io/component: primary
-        annotations:
-      spec:
-        accessModes:
-          - "ReadWriteOnce"
-        resources:
-          requests:
-            storage: "8Gi"
----
 # apps/v1/StatefulSet openvsx-proxy
 apiVersion: apps/v1
 kind: StatefulSet
@@ -8933,7 +8245,7 @@ spec:
             - name: GITPOD_INSTALLATION_SHORTNAME
               value: default
             - name: GITPOD_REGION
-              value: local
+              value: eu-west-2
             - name: HOST_URL
               value: https://gitpod.example.com
             - name: KUBE_NAMESPACE
@@ -8944,7 +8256,7 @@ spec:
               value: svc.cluster.local
             - name: LOG_LEVEL
               value: info
-          image: registry.mydomain.com/namespace/openvsx-proxy:test
+          image: eu.gcr.io/gitpod-core-dev/build/openvsx-proxy:test
           imagePullPolicy: IfNotPresent
           name: openvsx-proxy
           ports:
@@ -8971,7 +8283,7 @@ spec:
           env:
             - name: MASTER
               value: "true"
-          image: registry.mydomain.com/namespace/library/redis:6.2
+          image: docker.io/library/redis:6.2
           imagePullPolicy: IfNotPresent
           name: redis
           ports:
@@ -8996,7 +8308,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-          image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+          image: quay.io/brancz/kube-rbac-proxy:v0.12.0
           name: kube-rbac-proxy
           ports:
             - containerPort: 9500
@@ -9061,7 +8373,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: ca8305ae7d44552aace863e8af17bbdef1c57b0259ee7bdc20a7ab9061d2fb9f
+        gitpod.io/checksum_config: a46080fdf584e8531ec566bcd7761b7ceca365777f0859476a0a9c68beb99737
       creationTimestamp: null
       labels:
         app: gitpod
@@ -9086,7 +8398,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -9099,7 +8411,7 @@ spec:
           value: info
         - name: JAEGER_DISABLED
           value: "true"
-        image: registry.mydomain.com/namespace/blobserve:test
+        image: eu.gcr.io/gitpod-core-dev/build/blobserve:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -9147,7 +8459,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -9175,7 +8487,7 @@ spec:
           items:
           - key: .dockerconfigjson
             path: pull-secret.json
-          secretName: builtin-registry-auth
+          secretName: aws-ecr-credential
 status: {}
 ---
 # apps/v1/Deployment content-service
@@ -9202,7 +8514,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: 21ad538d4c7daef6619e5dda6fd71a49a5e5b551f0fc1365d3b7db1d1f38f9ce
+        gitpod.io/checksum_config: 001ede7ac181131e556bfa7c5dd2d6e24e019ffd763f3dc41f10b86b04056a41
       creationTimestamp: null
       labels:
         app: gitpod
@@ -9228,7 +8540,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -9243,7 +8555,7 @@ spec:
           value: "true"
         - name: GRPC_GO_RETRY
           value: "on"
-        image: registry.mydomain.com/namespace/content-service:test
+        image: eu.gcr.io/gitpod-core-dev/build/content-service:test
         imagePullPolicy: IfNotPresent
         name: content-service
         ports:
@@ -9271,7 +8583,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -9341,7 +8653,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -9352,7 +8664,7 @@ spec:
           value: svc.cluster.local
         - name: LOG_LEVEL
           value: info
-        image: registry.mydomain.com/namespace/dashboard:test
+        image: eu.gcr.io/gitpod-core-dev/build/dashboard:test
         imagePullPolicy: IfNotPresent
         name: dashboard
         ports:
@@ -9430,7 +8742,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -9445,28 +8757,28 @@ spec:
           valueFrom:
             secretKeyRef:
               key: host
-              name: mysql
+              name: aws-database
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               key: port
-              name: mysql
+              name: aws-database
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql
+              name: aws-database
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql
+              name: aws-database
         - name: DB_ENCRYPTION_KEYS
           valueFrom:
             secretKeyRef:
               key: encryptionKeys
-              name: mysql
-        image: registry.mydomain.com/namespace/iam:test
+              name: aws-database
+        image: eu.gcr.io/gitpod-core-dev/build/iam:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -9511,7 +8823,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -9537,28 +8849,28 @@ spec:
           valueFrom:
             secretKeyRef:
               key: host
-              name: mysql
+              name: aws-database
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               key: port
-              name: mysql
+              name: aws-database
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql
+              name: aws-database
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql
+              name: aws-database
         - name: DB_ENCRYPTION_KEYS
           valueFrom:
             secretKeyRef:
               key: encryptionKeys
-              name: mysql
-        image: registry.mydomain.com/namespace/service-waiter:test
+              name: aws-database
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: database-waiter
         resources: {}
         securityContext:
@@ -9574,7 +8886,7 @@ spec:
         name: config
       - name: database-config
         secret:
-          secretName: mysql
+          secretName: aws-database
 status: {}
 ---
 # apps/v1/Deployment ide-metrics
@@ -9627,7 +8939,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -9638,7 +8950,7 @@ spec:
           value: svc.cluster.local
         - name: LOG_LEVEL
           value: info
-        image: registry.mydomain.com/namespace/ide-metrics:test
+        image: eu.gcr.io/gitpod-core-dev/build/ide-metrics:test
         imagePullPolicy: IfNotPresent
         name: ide-metrics
         ports:
@@ -9670,7 +8982,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -9740,7 +9052,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -9751,7 +9063,7 @@ spec:
           value: svc.cluster.local
         - name: LOG_LEVEL
           value: info
-        image: registry.mydomain.com/namespace/ide-proxy:test
+        image: eu.gcr.io/gitpod-core-dev/build/ide-proxy:test
         imagePullPolicy: IfNotPresent
         name: ide-proxy
         ports:
@@ -9829,7 +9141,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -9840,7 +9152,7 @@ spec:
           value: svc.cluster.local
         - name: LOG_LEVEL
           value: info
-        image: registry.mydomain.com/namespace/ide-service:test
+        image: eu.gcr.io/gitpod-core-dev/build/ide-service:test
         imagePullPolicy: IfNotPresent
         name: ide-service
         ports:
@@ -9876,7 +9188,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -9929,7 +9241,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: dcca6a2e85fae554d69e6fe11a64ea7cc27c5bb94968d368599896acf6d9e829
+        gitpod.io/checksum_config: cc800373849134b29aa04bf2f88b41d073ed09f59d04e65f2b028898453cb0ca
       creationTimestamp: null
       labels:
         app: gitpod
@@ -9955,7 +9267,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -9968,7 +9280,7 @@ spec:
           value: info
         - name: JAEGER_DISABLED
           value: "true"
-        image: registry.mydomain.com/namespace/image-builder-mk3:test
+        image: eu.gcr.io/gitpod-core-dev/build/image-builder-mk3:test
         imagePullPolicy: IfNotPresent
         name: image-builder-mk3
         ports:
@@ -10000,7 +9312,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -10023,7 +9335,7 @@ spec:
         - -c
         - set -e; update-ca-certificates -f; cp /etc/ssl/certs/* /ssl-certs; echo
           'OK'
-        image: registry.mydomain.com/namespace/ca-updater:test
+        image: eu.gcr.io/gitpod-core-dev/build/ca-updater:test
         imagePullPolicy: IfNotPresent
         name: update-ca-certificates
         resources: {}
@@ -10048,123 +9360,12 @@ spec:
           items:
           - key: .dockerconfigjson
             path: pull-secret.json
-          secretName: builtin-registry-auth
+          secretName: aws-ecr-credential
       - emptyDir: {}
         name: gitpod-ca-certificate
       - emptyDir: {}
         name: cacerts
 status: {}
----
-# apps/v1/Deployment minio
-# Source: minio/charts/minio/templates/standalone/deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: minio
-  namespace: "default"
-  labels:
-    app.kubernetes.io/name: minio
-    helm.sh/chart: minio-11.10.24
-    app.kubernetes.io/instance: minio
-    app.kubernetes.io/managed-by: Helm
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: minio
-      app.kubernetes.io/instance: minio
-  strategy:
-    type: Recreate
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: minio
-        helm.sh/chart: minio-11.10.24
-        app.kubernetes.io/instance: minio
-        app.kubernetes.io/managed-by: Helm
-      annotations:
-        checksum/credentials-secret: 0f3ceb92b9779df4ce0927f6faeb23e9116b85e0eabe095d903e46a2770cde42
-    spec:
-      
-      serviceAccountName: minio
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: gitpod.io/workload_meta
-                operator: Exists
-        
-      securityContext:
-        fsGroup: 1001
-      containers:
-        - name: minio
-          image: registry.mydomain.com/namespace/bitnami/minio:2022.12.12-debian-11-r0
-          imagePullPolicy: "IfNotPresent"
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1001
-          env:
-            - name: BITNAMI_DEBUG
-              value: "false"
-            - name: MINIO_SCHEME
-              value: "http"
-            - name: MINIO_FORCE_NEW_KEYS
-              value: "no"
-            - name: MINIO_ROOT_USER
-              valueFrom:
-                secretKeyRef:
-                  name: minio
-                  key: root-user
-            - name: MINIO_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: minio
-                  key: root-password
-            - name: MINIO_BROWSER
-              value: "on"
-            - name: MINIO_PROMETHEUS_AUTH_TYPE
-              value: "public"
-            - name: MINIO_CONSOLE_PORT_NUMBER
-              value: "9001"
-            - name: MINIO_SKIP_CLIENT
-              value: "yes"
-          envFrom:
-          ports:
-            - name: minio-api
-              containerPort: 9000
-              protocol: TCP
-            - name: minio-console
-              containerPort: 9001
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /minio/health/live
-              port: minio-api
-              scheme: "HTTP"
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 5
-          readinessProbe:
-            tcpSocket:
-              port: minio-api
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 1
-            successThreshold: 1
-            failureThreshold: 5
-          resources:
-            limits: {}
-            requests:
-              memory: 2Gi
-          volumeMounts:
-            - name: data
-              mountPath: /data
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: minio
 ---
 # apps/v1/Deployment proxy
 apiVersion: apps/v1
@@ -10190,7 +9391,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: a7bd71558cb04a04656bafe7651d4192a9d37be96d2d817f9b6225f63e3a6989
+        gitpod.io/checksum_config: e6eea49478778c68ec71eee2aa5d2be8b67ebcfda86107a44d2cc80b88c1ecfe
       creationTimestamp: null
       labels:
         app: gitpod
@@ -10216,7 +9417,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         imagePullPolicy: IfNotPresent
         name: kube-rbac-proxy
         ports:
@@ -10237,7 +9438,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -10250,7 +9451,7 @@ spec:
           value: info
         - name: PROXY_DOMAIN
           value: gitpod.example.com
-        image: registry.mydomain.com/namespace/proxy:test
+        image: eu.gcr.io/gitpod-core-dev/build/proxy:test
         imagePullPolicy: IfNotPresent
         name: proxy
         ports:
@@ -10284,10 +9485,6 @@ spec:
           name: vhosts
         - mountPath: /etc/caddy/certificates
           name: config-certificates
-        - mountPath: /etc/caddy/registry-auth
-          name: builtin-registry-auth
-        - mountPath: /etc/caddy/registry-certs
-          name: builtin-registry-certs
       dnsPolicy: ClusterFirst
       enableServiceLinks: false
       initContainers:
@@ -10296,7 +9493,7 @@ spec:
         - -c
         - sysctl -w net.core.somaxconn=32768; sysctl -w net.ipv4.ip_local_port_range='1024
           65000'
-        image: registry.mydomain.com/namespace/library/alpine:3.16
+        image: docker.io/library/alpine:3.16
         imagePullPolicy: IfNotPresent
         name: sysctl
         resources: {}
@@ -10315,12 +9512,6 @@ spec:
       - name: config-certificates
         secret:
           secretName: https-certificates
-      - name: builtin-registry-auth
-        secret:
-          secretName: builtin-registry-auth
-      - name: builtin-registry-certs
-        secret:
-          secretName: builtin-registry-certs
 status: {}
 ---
 # apps/v1/Deployment public-api-server
@@ -10373,7 +9564,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -10388,28 +9579,28 @@ spec:
           valueFrom:
             secretKeyRef:
               key: host
-              name: mysql
+              name: aws-database
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               key: port
-              name: mysql
+              name: aws-database
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql
+              name: aws-database
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql
+              name: aws-database
         - name: DB_ENCRYPTION_KEYS
           valueFrom:
             secretKeyRef:
               key: encryptionKeys
-              name: mysql
-        image: registry.mydomain.com/namespace/public-api-server:test
+              name: aws-database
+        image: eu.gcr.io/gitpod-core-dev/build/public-api-server:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -10452,7 +9643,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -10478,28 +9669,28 @@ spec:
           valueFrom:
             secretKeyRef:
               key: host
-              name: mysql
+              name: aws-database
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               key: port
-              name: mysql
+              name: aws-database
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql
+              name: aws-database
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql
+              name: aws-database
         - name: DB_ENCRYPTION_KEYS
           valueFrom:
             secretKeyRef:
               key: encryptionKeys
-              name: mysql
-        image: registry.mydomain.com/namespace/service-waiter:test
+              name: aws-database
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: database-waiter
         resources: {}
         securityContext:
@@ -10514,93 +9705,6 @@ spec:
           name: public-api-server
         name: config
 status: {}
----
-# apps/v1/Deployment registry
-# Source: docker-registry/charts/docker-registry/templates/deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: registry
-  namespace: default
-  labels:
-    app: docker-registry
-    chart: docker-registry-2.2.2
-    release: docker-registry
-    heritage: Helm
-spec:
-  selector:
-    matchLabels:
-      app: docker-registry
-      release: docker-registry
-  replicas: 1
-  minReadySeconds: 5
-  template:
-    metadata:
-      labels:
-        app: docker-registry
-        release: docker-registry
-      annotations:
-        checksum/config: 699dd382179068f3354c330fcce38625e2861d97b962074b4f57005d40497b00
-        checksum/secret: 450f59aeda22415409a87a1abd2c033c08ebd5fb54fe24d3c56560e92b0218f6
-        
-        gitpod.io/checksum_config: 1c66f4ccdb7f6331da2edaecefcb40f6c1b6315c9277eb0418fef3cc584a28bd
-    spec:
-      serviceAccountName: docker-registry
-      securityContext:
-        fsGroup: 1000
-        runAsUser: 1000
-      containers:
-        - name: docker-registry
-          image: "registry.mydomain.com/namespace/library/registry:2.8.1"
-          imagePullPolicy: IfNotPresent
-          command:
-          - /bin/registry
-          - serve
-          - /etc/docker/registry/config.yml
-          ports:
-            - containerPort: 5000
-          livenessProbe:
-            httpGet:
-              scheme: HTTPS
-              path: /
-              port: 5000
-          readinessProbe:
-            httpGet:
-              scheme: HTTPS
-              path: /
-              port: 5000
-          resources: 
-            {}
-          env: 
-            - name: REGISTRY_HTTP_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: registry-secret
-                  key: haSharedSecret
-            - name: REGISTRY_HTTP_TLS_CERTIFICATE
-              value: /etc/ssl/docker/tls.crt
-            - name: REGISTRY_HTTP_TLS_KEY
-              value: /etc/ssl/docker/tls.key
-            - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
-              value: "/var/lib/registry"
-          volumeMounts: 
-            - name: "registry-config"
-              mountPath: "/etc/docker/registry"
-            - name: data
-              mountPath: /var/lib/registry/
-            - mountPath: /etc/ssl/docker
-              name: tls-cert
-              readOnly: true
-      volumes: 
-        - name: registry-config
-          configMap:
-            name: registry-config
-        - name: data
-          persistentVolumeClaim:
-            claimName: registry
-        - name: tls-cert
-          secret:
-            secretName: builtin-registry-certs
 ---
 # apps/v1/Deployment server
 apiVersion: apps/v1
@@ -10626,7 +9730,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: 4b4c3a473e5569c39bda206c756538858ff6f5495b563c523705666ba3ec4930
+        gitpod.io/checksum_config: 8c05f78bde8894a461a3d382e567b6d00d34026fa916c9e7baf2c1e81e43b239
       creationTimestamp: null
       labels:
         app: gitpod
@@ -10648,7 +9752,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -10663,27 +9767,27 @@ spec:
           valueFrom:
             secretKeyRef:
               key: host
-              name: mysql
+              name: aws-database
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               key: port
-              name: mysql
+              name: aws-database
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql
+              name: aws-database
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql
+              name: aws-database
         - name: DB_ENCRYPTION_KEYS
           valueFrom:
             secretKeyRef:
               key: encryptionKeys
-              name: mysql
+              name: aws-database
         - name: JAEGER_DISABLED
           value: "true"
         - name: MESSAGEBUS_USERNAME
@@ -10723,7 +9827,7 @@ spec:
           value: "1"
         - name: WSMAN_CFG_MANAGERS
           value: WwogIHsKICAgICJuYW1lIjogImRlZmF1bHQiLAogICAgInVybCI6ICJkbnM6Ly8vd3MtbWFuYWdlcjo4MDgwIiwKICAgICJ0bHMiOiB7CiAgICAgICJjYSI6ICIvd3MtbWFuYWdlci1jbGllbnQtdGxzLWNlcnRzL2NhLmNydCIsCiAgICAgICJjcnQiOiAiL3dzLW1hbmFnZXItY2xpZW50LXRscy1jZXJ0cy90bHMuY3J0IiwKICAgICAgImtleSI6ICIvd3MtbWFuYWdlci1jbGllbnQtdGxzLWNlcnRzL3Rscy5rZXkiCiAgICB9LAogICAgInN0YXRlIjogImF2YWlsYWJsZSIsCiAgICAibWF4U2NvcmUiOiAxMDAsCiAgICAic2NvcmUiOiA1MCwKICAgICJnb3Zlcm4iOiB0cnVlLAogICAgImFkbWlzc2lvbkNvbnN0cmFpbnRzIjogbnVsbCwKICAgICJhcHBsaWNhdGlvbkNsdXN0ZXIiOiAiZGVmYXVsdCIKICB9Cl0=
-        image: registry.mydomain.com/namespace/server:test
+        image: eu.gcr.io/gitpod-core-dev/build/server:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 6
@@ -10776,7 +9880,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -10801,28 +9905,28 @@ spec:
           valueFrom:
             secretKeyRef:
               key: host
-              name: mysql
+              name: aws-database
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               key: port
-              name: mysql
+              name: aws-database
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql
+              name: aws-database
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql
+              name: aws-database
         - name: DB_ENCRYPTION_KEYS
           valueFrom:
             secretKeyRef:
               key: encryptionKeys
-              name: mysql
-        image: registry.mydomain.com/namespace/service-waiter:test
+              name: aws-database
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: database-waiter
         resources: {}
         securityContext:
@@ -10858,7 +9962,7 @@ spec:
             secretKeyRef:
               key: tls.key
               name: messagebus-certificates-secret-core
-        image: registry.mydomain.com/namespace/service-waiter:test
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: msgbus-waiter
         resources: {}
         securityContext:
@@ -10907,7 +10011,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: 21c3b53bac44cf0f98bc57e43353e3136dc5806409951038c2ba36aea69dd218
+        gitpod.io/checksum_config: 29657affc572493de62cb1a3c9f69edb0bd8698d331404ce0a79f2d3333bf1b7
       creationTimestamp: null
       labels:
         app: gitpod
@@ -10933,7 +10037,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -10948,7 +10052,7 @@ spec:
           value: "true"
         - name: GRPC_GO_RETRY
           value: "on"
-        image: registry.mydomain.com/namespace/ws-manager:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-manager:test
         imagePullPolicy: IfNotPresent
         name: ws-manager
         ports:
@@ -10983,7 +10087,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -11042,7 +10146,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: c0a3088b82fda02787165a99308e1e0cd9f919c7ba88828f2c98734c22d14c64
+        gitpod.io/checksum_config: 1204c7850d31ddc8a1df95ea51055aca1e3df0c7588213e4130b337d5487b5c9
       creationTimestamp: null
       labels:
         app: gitpod
@@ -11064,7 +10168,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -11106,30 +10210,30 @@ spec:
           valueFrom:
             secretKeyRef:
               key: host
-              name: mysql
+              name: aws-database
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               key: port
-              name: mysql
+              name: aws-database
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql
+              name: aws-database
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql
+              name: aws-database
         - name: DB_ENCRYPTION_KEYS
           valueFrom:
             secretKeyRef:
               key: encryptionKeys
-              name: mysql
+              name: aws-database
         - name: WSMAN_BRIDGE_CONFIGPATH
           value: /config/ws-manager-bridge.json
-        image: registry.mydomain.com/namespace/ws-manager-bridge:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-manager-bridge:test
         imagePullPolicy: IfNotPresent
         name: ws-manager-bridge
         ports:
@@ -11159,7 +10263,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -11185,28 +10289,28 @@ spec:
           valueFrom:
             secretKeyRef:
               key: host
-              name: mysql
+              name: aws-database
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               key: port
-              name: mysql
+              name: aws-database
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql
+              name: aws-database
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql
+              name: aws-database
         - name: DB_ENCRYPTION_KEYS
           valueFrom:
             secretKeyRef:
               key: encryptionKeys
-              name: mysql
-        image: registry.mydomain.com/namespace/service-waiter:test
+              name: aws-database
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: database-waiter
         resources: {}
         securityContext:
@@ -11242,7 +10346,7 @@ spec:
             secretKeyRef:
               key: tls.key
               name: messagebus-certificates-secret-core
-        image: registry.mydomain.com/namespace/service-waiter:test
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: msgbus-waiter
         resources: {}
         securityContext:
@@ -11286,7 +10390,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: 54a20d5d027f3637c14e46ec387021c29056fc293a700bd87f470fdd7d796937
+        gitpod.io/checksum_config: f88055f3ce58c8eca0064866deeb5131473b6ba2980dce8bf4f9989e997f1ff5
       creationTimestamp: null
       labels:
         app: gitpod
@@ -11311,7 +10415,7 @@ spec:
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -11324,7 +10428,7 @@ spec:
           value: info
         - name: JAEGER_DISABLED
           value: "true"
-        image: registry.mydomain.com/namespace/ws-proxy:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-proxy:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 10
@@ -11377,7 +10481,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -11415,6 +10519,121 @@ spec:
       - name: ws-manager-client-tls-certs
         secret:
           secretName: ws-manager-client-tls
+status: {}
+---
+# batch/v1/Job dbinit-session
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  labels:
+    app: gitpod
+    component: dbinit
+  name: dbinit-session
+  namespace: default
+spec:
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: gitpod
+        component: dbinit
+      name: dbinit-session
+      namespace: default
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: gitpod.io/workload_meta
+                operator: Exists
+      containers:
+      - command:
+        - sh
+        - -c
+        - mysql -h $DB_HOST --port $DB_PORT -u $DB_USERNAME -p$DB_PASSWORD < /db-init-scripts/init.sql
+        env:
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: aws-database
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              key: port
+              name: aws-database
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: aws-database
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: aws-database
+        - name: DB_ENCRYPTION_KEYS
+          valueFrom:
+            secretKeyRef:
+              key: encryptionKeys
+              name: aws-database
+        image: docker.io/library/mysql:5.7.34
+        imagePullPolicy: IfNotPresent
+        name: dbinit-session
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - mountPath: /db-init-scripts
+          name: db-init-scripts
+          readOnly: true
+      enableServiceLinks: false
+      initContainers:
+      - args:
+        - -v
+        - database
+        env:
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: aws-database
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              key: port
+              name: aws-database
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: aws-database
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: aws-database
+        - name: DB_ENCRYPTION_KEYS
+          valueFrom:
+            secretKeyRef:
+              key: encryptionKeys
+              name: aws-database
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
+        name: database-waiter
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          runAsUser: 31001
+      restartPolicy: Never
+      serviceAccountName: dbinit
+      volumes:
+      - configMap:
+          name: db-init-scripts
+        name: db-init-scripts
+  ttlSecondsAfterFinished: 60
 status: {}
 ---
 # batch/v1/Job migrations
@@ -11455,33 +10674,33 @@ spec:
           valueFrom:
             secretKeyRef:
               key: host
-              name: mysql
+              name: aws-database
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               key: port
-              name: mysql
+              name: aws-database
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql
+              name: aws-database
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql
+              name: aws-database
         - name: DB_ENCRYPTION_KEYS
           valueFrom:
             secretKeyRef:
               key: encryptionKeys
-              name: mysql
+              name: aws-database
         - name: GITPOD_DOMAIN
           value: gitpod.example.com
         - name: GITPOD_INSTALLATION_SHORTNAME
           value: default
         - name: GITPOD_REGION
-          value: local
+          value: eu-west-2
         - name: HOST_URL
           value: https://gitpod.example.com
         - name: KUBE_NAMESPACE
@@ -11492,7 +10711,7 @@ spec:
           value: svc.cluster.local
         - name: LOG_LEVEL
           value: info
-        image: registry.mydomain.com/namespace/db-migrations:test
+        image: eu.gcr.io/gitpod-core-dev/build/db-migrations:test
         imagePullPolicy: IfNotPresent
         name: migrations
         resources: {}
@@ -11508,28 +10727,28 @@ spec:
           valueFrom:
             secretKeyRef:
               key: host
-              name: mysql
+              name: aws-database
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               key: port
-              name: mysql
+              name: aws-database
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: mysql
+              name: aws-database
         - name: DB_USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: mysql
+              name: aws-database
         - name: DB_ENCRYPTION_KEYS
           valueFrom:
             secretKeyRef:
               key: encryptionKeys
-              name: mysql
-        image: registry.mydomain.com/namespace/service-waiter:test
+              name: aws-database
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: database-waiter
         resources: {}
         securityContext:
@@ -11582,7 +10801,7 @@ spec:
               value: unknown
             - name: SERVER_URL
               value: http://server.default.svc.cluster.local:9000
-            image: registry.mydomain.com/namespace/installation-telemetry:test
+            image: eu.gcr.io/gitpod-core-dev/build/installation-telemetry:test
             imagePullPolicy: IfNotPresent
             name: gitpod-telemetry
             resources: {}
@@ -11598,28 +10817,28 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: host
-                  name: mysql
+                  name: aws-database
             - name: DB_PORT
               valueFrom:
                 secretKeyRef:
                   key: port
-                  name: mysql
+                  name: aws-database
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: password
-                  name: mysql
+                  name: aws-database
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
                   key: username
-                  name: mysql
+                  name: aws-database
             - name: DB_ENCRYPTION_KEYS
               valueFrom:
                 secretKeyRef:
                   key: encryptionKeys
-                  name: mysql
-            image: registry.mydomain.com/namespace/service-waiter:test
+                  name: aws-database
+            image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
             name: database-waiter
             resources: {}
             securityContext:
@@ -11630,4 +10849,66 @@ spec:
           serviceAccountName: gitpod
   schedule: '@daily'
   successfulJobsHistoryLimit: 3
+status: {}
+---
+# batch/v1/CronJob refresh-credential
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  creationTimestamp: null
+  labels:
+    app: gitpod
+    component: refresh-credential
+  name: refresh-credential
+  namespace: default
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: gitpod
+        component: refresh-credential
+      name: refresh-credential
+      namespace: default
+    spec:
+      backoffLimit: 10
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            app: gitpod
+            component: refresh-credential
+          name: refresh-credential
+          namespace: default
+        spec:
+          containers:
+          - args:
+            - ecr-update
+            - /config/config.json
+            image: eu.gcr.io/gitpod-core-dev/build/refresh-credential:test
+            imagePullPolicy: IfNotPresent
+            name: refresh-credential
+            resources: {}
+            securityContext:
+              allowPrivilegeEscalation: false
+            volumeMounts:
+            - mountPath: /config
+              name: config
+              readOnly: true
+            - mountPath: /mnt/secrets/storage
+              name: storage-volume
+              readOnly: true
+          restartPolicy: OnFailure
+          serviceAccountName: refresh-credential
+          volumes:
+          - configMap:
+              name: refresh-credential
+            name: config
+          - name: storage-volume
+            secret:
+              secretName: aws-storage
+  schedule: '* */6 * * *'
+  successfulJobsHistoryLimit: 1
 status: {}

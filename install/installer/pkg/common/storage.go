@@ -58,7 +58,7 @@ func StorageConfig(context *RenderContext) storageconfig.StorageConfig {
 		}
 	}
 
-	if useMinio(context) {
+	if res == nil && useMinio(context) {
 		res = &storageconfig.StorageConfig{
 			Kind: storageconfig.MinIOStorage,
 			MinIOConfig: storageconfig.MinIOConfig{
@@ -144,8 +144,10 @@ func AddStorageMounts(ctx *RenderContext, pod *corev1.PodSpec, container ...stri
 		return nil
 	}
 
-	if ctx.Config.ObjectStorage.S3 != nil && ctx.Config.ObjectStorage.S3.Credentials != nil {
-		MountStorage(pod, ctx.Config.ObjectStorage.S3.Credentials.Name, container...)
+	if ctx.Config.ObjectStorage.S3 != nil {
+		if ctx.Config.ObjectStorage.S3.Credentials != nil {
+			MountStorage(pod, ctx.Config.ObjectStorage.S3.Credentials.Name, container...)
+		}
 
 		return nil
 	}
