@@ -145,7 +145,7 @@ func AddStorageMounts(ctx *RenderContext, pod *corev1.PodSpec, container ...stri
 	}
 
 	if ctx.Config.ObjectStorage.S3 != nil {
-		if ctx.Config.ObjectStorage.S3.Credentials != nil {
+		if ctx.Config.ObjectStorage.S3.Credentials != nil && ctx.Config.ObjectStorage.S3.Credentials.Name != "" {
 			MountStorage(pod, ctx.Config.ObjectStorage.S3.Credentials.Name, container...)
 		}
 
