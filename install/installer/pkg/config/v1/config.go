@@ -47,6 +47,8 @@ func (v version) Defaults(in interface{}) error {
 		return config.ErrInvalidType
 	}
 
+	cfg.CreateServiceAccounts = true
+
 	cfg.Kind = InstallationFull
 	cfg.Repository = defaultRepositoryUrl
 	cfg.Observability = Observability{
@@ -160,6 +162,8 @@ type Config struct {
 	Domain     string   `json:"domain" validate:"required,fqdn"`
 	Metadata   Metadata `json:"metadata"`
 	Repository string   `json:"repository" validate:"required,ascii"`
+
+	CreateServiceAccounts bool `json:"createServiceAccounts"`
 
 	Observability Observability `json:"observability"`
 	Analytics     *Analytics    `json:"analytics,omitempty"`

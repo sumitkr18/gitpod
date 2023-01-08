@@ -925,18 +925,6 @@ metadata:
   name: ide-service
   namespace: default
 ---
-# v1/ServiceAccount image-builder-mk3
-apiVersion: v1
-automountServiceAccountToken: true
-kind: ServiceAccount
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: image-builder-mk3
-  name: image-builder-mk3
-  namespace: default
----
 # v1/ServiceAccount migrations
 apiVersion: v1
 automountServiceAccountToken: true
@@ -1029,30 +1017,6 @@ automountServiceAccountToken: true
 secrets:
   - name: messagebus
 ---
-# v1/ServiceAccount registry-facade
-apiVersion: v1
-automountServiceAccountToken: true
-kind: ServiceAccount
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: registry-facade
-  name: registry-facade
-  namespace: default
----
-# v1/ServiceAccount server
-apiVersion: v1
-automountServiceAccountToken: true
-kind: ServiceAccount
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: server
-  name: server
-  namespace: default
----
 # v1/ServiceAccount workspace
 apiVersion: v1
 automountServiceAccountToken: true
@@ -1063,18 +1027,6 @@ metadata:
     app: gitpod
     component: workspace
   name: workspace
-  namespace: default
----
-# v1/ServiceAccount ws-daemon
-apiVersion: v1
-automountServiceAccountToken: true
-kind: ServiceAccount
-metadata:
-  creationTimestamp: null
-  labels:
-    app: gitpod
-    component: ws-daemon
-  name: ws-daemon
   namespace: default
 ---
 # v1/ServiceAccount ws-manager
@@ -1326,7 +1278,7 @@ data:
         "port": 32224,
         "timeout": "5s",
         "repos": {
-          "registry.mydomain.com/namespace/ide/code": {
+          "eu.gcr.io/gitpod-core-dev/build/ide/code": {
             "workdir": "/ide",
             "replacements": [
               {
@@ -1388,7 +1340,7 @@ data:
               }
             ]
           },
-          "registry.mydomain.com/namespace/supervisor": {
+          "eu.gcr.io/gitpod-core-dev/build/supervisor": {
             "workdir": "/.supervisor/frontend"
           }
         },
@@ -1519,7 +1471,7 @@ data:
     containerRegistry:
       inCluster: true
       privateBaseImageAllowList: []
-    createServiceAccounts: true
+    createServiceAccounts: false
     database:
       inCluster: true
     disableDefinitelyGp: true
@@ -1537,7 +1489,7 @@ data:
       logLevel: info
     openVSX:
       url: https://open-vsx.org
-    repository: registry.mydomain.com/namespace
+    repository: eu.gcr.io/gitpod-core-dev/build
     workspace:
       maxLifetime: 36h0m0s
       prebuildPVC:
@@ -2720,16 +2672,6 @@ data:
       namespace: default
     ---
     apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: server
-      name: server
-      namespace: default
-    ---
-    apiVersion: v1
     kind: ConfigMap
     metadata:
       creationTimestamp: null
@@ -2999,16 +2941,6 @@ data:
       name: registry-facade
       namespace: default
     ---
-    apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: registry-facade
-      name: registry-facade
-      namespace: default
-    ---
     apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
@@ -3050,16 +2982,6 @@ data:
     ---
     apiVersion: v1
     kind: ConfigMap
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: ws-daemon
-      name: ws-daemon
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: ServiceAccount
     metadata:
       creationTimestamp: null
       labels:
@@ -3413,16 +3335,6 @@ data:
         app: gitpod
         component: image-builder-mk3
         kind: service
-      name: image-builder-mk3
-      namespace: default
-    ---
-    apiVersion: v1
-    kind: ServiceAccount
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: gitpod
-        component: image-builder-mk3
       name: image-builder-mk3
       namespace: default
     ---
@@ -3794,7 +3706,7 @@ data:
   config.json: |-
     {
       "gpRunImage": "registry.hub.docker.com/gitpod/gp-run:latest",
-      "supervisorImage": "registry.mydomain.com/namespace/supervisor:test",
+      "supervisorImage": "eu.gcr.io/gitpod-core-dev/build/supervisor:test",
       "ideOptions": {
         "options": {
           "clion": {
@@ -3802,17 +3714,17 @@ data:
             "title": "CLion",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/clionLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/clion:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/clion:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/clion:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/clion:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "code": {
@@ -3821,33 +3733,33 @@ data:
             "type": "browser",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/vscode.svg",
             "label": "Browser",
-            "image": "registry.mydomain.com/namespace/ide/code:commit-fdf6a08a681c53ddd97c7bae9acc7d49158a41a0",
-            "latestImage": "registry.mydomain.com/namespace/ide/code:nightly"
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/code:commit-fdf6a08a681c53ddd97c7bae9acc7d49158a41a0",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/code:nightly"
           },
           "code-desktop": {
             "orderKey": "02",
             "title": "VS Code",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/vscode.svg",
-            "image": "registry.mydomain.com/namespace/ide/code-desktop:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/code-desktop-insiders:test"
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/code-desktop:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/code-desktop-insiders:test"
           },
           "goland": {
             "orderKey": "05",
             "title": "GoLand",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/golandLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/goland:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/goland:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/goland:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/goland:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "intellij": {
@@ -3856,17 +3768,17 @@ data:
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/intellijIdeaLogo.svg",
             "label": "Ultimate",
-            "image": "registry.mydomain.com/namespace/ide/intellij:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/intellij:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/intellij:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/intellij:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "phpstorm": {
@@ -3874,17 +3786,17 @@ data:
             "title": "PhpStorm",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/phpstormLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/phpstorm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/phpstorm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/phpstorm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/phpstorm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "pycharm": {
@@ -3893,17 +3805,17 @@ data:
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/pycharmLogo.svg",
             "label": "Professional",
-            "image": "registry.mydomain.com/namespace/ide/pycharm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/pycharm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/pycharm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/pycharm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "rider": {
@@ -3911,17 +3823,17 @@ data:
             "title": "Rider",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/riderLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/rider:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/rider:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/rider:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/rider:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "rubymine": {
@@ -3929,17 +3841,17 @@ data:
             "title": "RubyMine",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/rubymineLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/rubymine:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/rubymine:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/rubymine:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/rubymine:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "webstorm": {
@@ -3947,17 +3859,17 @@ data:
             "title": "WebStorm",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/webstormLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/webstorm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/webstorm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/webstorm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/webstorm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           }
         },
@@ -5063,12 +4975,12 @@ data:
         "pullSecretFile": "/config/pull-secret/pull-secret.json",
         "baseImageRepository": "registry.gitpod.example.com/base-images",
         "workspaceImageRepository": "registry.gitpod.example.com/workspace-images",
-        "builderImage": "registry.mydomain.com/namespace/image-builder-mk3/bob:test"
+        "builderImage": "eu.gcr.io/gitpod-core-dev/build/image-builder-mk3/bob:test"
       },
       "refCache": {
         "interval": "6h0m0s",
         "refs": [
-          "registry.mydomain.com/namespace/gitpod/workspace-full:latest"
+          "docker.io/gitpod/workspace-full:latest"
         ]
       },
       "server": {
@@ -5322,15 +5234,15 @@ data:
         "prefix": "",
         "staticLayer": [
           {
-            "ref": "registry.mydomain.com/namespace/supervisor:test",
+            "ref": "eu.gcr.io/gitpod-core-dev/build/supervisor:test",
             "type": "image"
           },
           {
-            "ref": "registry.mydomain.com/namespace/workspacekit:test",
+            "ref": "eu.gcr.io/gitpod-core-dev/build/workspacekit:test",
             "type": "image"
           },
           {
-            "ref": "registry.mydomain.com/namespace/docker-up:test",
+            "ref": "eu.gcr.io/gitpod-core-dev/build/docker-up:test",
             "type": "image"
           }
         ],
@@ -5401,7 +5313,7 @@ data:
         "timeoutSeconds": 300
       },
       "workspaceDefaults": {
-        "workspaceImage": "registry.mydomain.com/namespace/gitpod/workspace-full:latest",
+        "workspaceImage": "docker.io/gitpod/workspace-full:latest",
         "previewFeatureFlags": [],
         "defaultFeatureFlags": []
       },
@@ -5510,7 +5422,7 @@ data:
   config.json: |-
     {
       "gpRunImage": "registry.hub.docker.com/gitpod/gp-run:latest",
-      "supervisorImage": "registry.mydomain.com/namespace/supervisor:test",
+      "supervisorImage": "eu.gcr.io/gitpod-core-dev/build/supervisor:test",
       "ideOptions": {
         "options": {
           "clion": {
@@ -5518,17 +5430,17 @@ data:
             "title": "CLion",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/clionLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/clion:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/clion:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/clion:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/clion:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "code": {
@@ -5537,33 +5449,33 @@ data:
             "type": "browser",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/vscode.svg",
             "label": "Browser",
-            "image": "registry.mydomain.com/namespace/ide/code:commit-fdf6a08a681c53ddd97c7bae9acc7d49158a41a0",
-            "latestImage": "registry.mydomain.com/namespace/ide/code:nightly"
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/code:commit-fdf6a08a681c53ddd97c7bae9acc7d49158a41a0",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/code:nightly"
           },
           "code-desktop": {
             "orderKey": "02",
             "title": "VS Code",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/vscode.svg",
-            "image": "registry.mydomain.com/namespace/ide/code-desktop:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/code-desktop-insiders:test"
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/code-desktop:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/code-desktop-insiders:test"
           },
           "goland": {
             "orderKey": "05",
             "title": "GoLand",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/golandLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/goland:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/goland:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/goland:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/goland:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "intellij": {
@@ -5572,17 +5484,17 @@ data:
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/intellijIdeaLogo.svg",
             "label": "Ultimate",
-            "image": "registry.mydomain.com/namespace/ide/intellij:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/intellij:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/intellij:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/intellij:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "phpstorm": {
@@ -5590,17 +5502,17 @@ data:
             "title": "PhpStorm",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/phpstormLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/phpstorm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/phpstorm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/phpstorm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/phpstorm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "pycharm": {
@@ -5609,17 +5521,17 @@ data:
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/pycharmLogo.svg",
             "label": "Professional",
-            "image": "registry.mydomain.com/namespace/ide/pycharm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/pycharm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/pycharm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/pycharm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "rider": {
@@ -5627,17 +5539,17 @@ data:
             "title": "Rider",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/riderLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/rider:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/rider:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/rider:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/rider:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "rubymine": {
@@ -5645,17 +5557,17 @@ data:
             "title": "RubyMine",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/rubymineLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/rubymine:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/rubymine:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/rubymine:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/rubymine:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           },
           "webstorm": {
@@ -5663,17 +5575,17 @@ data:
             "title": "WebStorm",
             "type": "desktop",
             "logo": "https://ide.gitpod.example.com/image/ide-logo/webstormLogo.svg",
-            "image": "registry.mydomain.com/namespace/ide/webstorm:test",
-            "latestImage": "registry.mydomain.com/namespace/ide/webstorm:latest",
-            "pluginImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-            "pluginLatestImage": "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
+            "image": "eu.gcr.io/gitpod-core-dev/build/ide/webstorm:test",
+            "latestImage": "eu.gcr.io/gitpod-core-dev/build/ide/webstorm:latest",
+            "pluginImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+            "pluginLatestImage": "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
             "imageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:test",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:test",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ],
             "latestImageLayers": [
-              "registry.mydomain.com/namespace/ide/jb-backend-plugin:latest",
-              "registry.mydomain.com/namespace/ide/jb-launcher:test"
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-backend-plugin:latest",
+              "eu.gcr.io/gitpod-core-dev/build/ide/jb-launcher:test"
             ]
           }
         },
@@ -6084,7 +5996,7 @@ data:
         "workspacePodConfig": {
           "theiaPort": 23000,
           "supervisorPort": 22999,
-          "supervisorImage": "registry.mydomain.com/namespace/supervisor:test"
+          "supervisorImage": "eu.gcr.io/gitpod-core-dev/build/supervisor:test"
         },
         "builtinPages": {
           "location": "/app/public"
@@ -7998,7 +7910,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: registry.mydomain.com/namespace/agent-smith:test
+        image: eu.gcr.io/gitpod-core-dev/build/agent-smith:test
         imagePullPolicy: IfNotPresent
         name: agent-smith
         resources:
@@ -8020,7 +7932,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -8070,7 +7982,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: c89ca2c9729c189ef1739d1bfc113c8c52bc46f8155c4a9b195ccd4de910a23b
+        gitpod.io/checksum_config: 3e7db160db71491d8d16b0423783bf99a0dc293dc723960c9308756bdde69d3b
       creationTimestamp: null
       labels:
         app: gitpod
@@ -8116,7 +8028,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: registry.mydomain.com/namespace/registry-facade:test
+        image: eu.gcr.io/gitpod-core-dev/build/registry-facade:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -8171,7 +8083,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -8195,7 +8107,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: registry.mydomain.com/namespace/registry-facade:test
+        image: eu.gcr.io/gitpod-core-dev/build/registry-facade:test
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -8223,7 +8135,7 @@ spec:
         - -c
         - set -e; update-ca-certificates -f; cp /etc/ssl/certs/* /ssl-certs; echo
           'OK'
-        image: registry.mydomain.com/namespace/ca-updater:test
+        image: eu.gcr.io/gitpod-core-dev/build/ca-updater:test
         imagePullPolicy: IfNotPresent
         name: update-ca-certificates
         resources: {}
@@ -8332,7 +8244,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: registry.mydomain.com/namespace/ws-daemon:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-daemon:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 5
@@ -8395,7 +8307,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -8419,7 +8331,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: registry.mydomain.com/namespace/ws-daemon:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-daemon:test
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -8449,7 +8361,7 @@ spec:
         - /bin/sh
         - -c
         - cp -f /installer/workspace_default.json /mnt/dst/workspace_default_pd-ide-metrics.23.json
-        image: registry.mydomain.com/namespace/seccomp-profile-installer:test
+        image: eu.gcr.io/gitpod-core-dev/build/seccomp-profile-installer:test
         name: seccomp-profile-installer
         resources: {}
         securityContext:
@@ -8465,7 +8377,7 @@ spec:
           &&\n\tsysctl -w fs.inotify.max_user_watches=1000000 &&\n\tsysctl -w \"kernel.dmesg_restrict=1\"
           &&\n\tsysctl -w vm.unprivileged_userfaultfd=0\n) && echo \"done!\" || echo
           \"failed!\"\n"
-        image: registry.mydomain.com/namespace/ws-daemon:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-daemon:test
         name: sysctl
         resources: {}
         securityContext:
@@ -8587,7 +8499,7 @@ spec:
       initContainers:
       containers:
         - name: rabbitmq
-          image: registry.mydomain.com/namespace/bitnami/rabbitmq:3.10.2-debian-10-r7
+          image: docker.io/bitnami/rabbitmq:3.10.2-debian-10-r7
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -8782,7 +8694,7 @@ spec:
         fsGroup: 1001
       initContainers:
         - name: volume-permissions
-          image: registry.mydomain.com/namespace/bitnami/bitnami-shell:10-debian-10-r431
+          image: docker.io/bitnami/bitnami-shell:10-debian-10-r431
           imagePullPolicy: "IfNotPresent"
           command:
             - /bin/bash
@@ -8798,7 +8710,7 @@ spec:
               mountPath: /bitnami/mysql
       containers:
         - name: mysql
-          image: registry.mydomain.com/namespace/bitnami/mysql:5.7.34-debian-10-r55
+          image: docker.io/bitnami/mysql:5.7.34-debian-10-r55
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -8947,7 +8859,7 @@ spec:
               value: svc.cluster.local
             - name: LOG_LEVEL
               value: info
-          image: registry.mydomain.com/namespace/openvsx-proxy:test
+          image: eu.gcr.io/gitpod-core-dev/build/openvsx-proxy:test
           imagePullPolicy: IfNotPresent
           name: openvsx-proxy
           ports:
@@ -8974,7 +8886,7 @@ spec:
           env:
             - name: MASTER
               value: "true"
-          image: registry.mydomain.com/namespace/library/redis:6.2
+          image: docker.io/library/redis:6.2
           imagePullPolicy: IfNotPresent
           name: redis
           ports:
@@ -8999,7 +8911,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-          image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+          image: quay.io/brancz/kube-rbac-proxy:v0.12.0
           name: kube-rbac-proxy
           ports:
             - containerPort: 9500
@@ -9064,7 +8976,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: ca8305ae7d44552aace863e8af17bbdef1c57b0259ee7bdc20a7ab9061d2fb9f
+        gitpod.io/checksum_config: 0d9d1c68723466a253996f0a96bf0682ce57b89ebcb4ae1e4a643dd788ef1cab
       creationTimestamp: null
       labels:
         app: gitpod
@@ -9102,7 +9014,7 @@ spec:
           value: info
         - name: JAEGER_DISABLED
           value: "true"
-        image: registry.mydomain.com/namespace/blobserve:test
+        image: eu.gcr.io/gitpod-core-dev/build/blobserve:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -9150,7 +9062,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -9246,7 +9158,7 @@ spec:
           value: "true"
         - name: GRPC_GO_RETRY
           value: "on"
-        image: registry.mydomain.com/namespace/content-service:test
+        image: eu.gcr.io/gitpod-core-dev/build/content-service:test
         imagePullPolicy: IfNotPresent
         name: content-service
         ports:
@@ -9274,7 +9186,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -9355,7 +9267,7 @@ spec:
           value: svc.cluster.local
         - name: LOG_LEVEL
           value: info
-        image: registry.mydomain.com/namespace/dashboard:test
+        image: eu.gcr.io/gitpod-core-dev/build/dashboard:test
         imagePullPolicy: IfNotPresent
         name: dashboard
         ports:
@@ -9469,7 +9381,7 @@ spec:
             secretKeyRef:
               key: encryptionKeys
               name: mysql
-        image: registry.mydomain.com/namespace/iam:test
+        image: eu.gcr.io/gitpod-core-dev/build/iam:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -9514,7 +9426,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -9561,7 +9473,7 @@ spec:
             secretKeyRef:
               key: encryptionKeys
               name: mysql
-        image: registry.mydomain.com/namespace/service-waiter:test
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: database-waiter
         resources: {}
         securityContext:
@@ -9641,7 +9553,7 @@ spec:
           value: svc.cluster.local
         - name: LOG_LEVEL
           value: info
-        image: registry.mydomain.com/namespace/ide-metrics:test
+        image: eu.gcr.io/gitpod-core-dev/build/ide-metrics:test
         imagePullPolicy: IfNotPresent
         name: ide-metrics
         ports:
@@ -9673,7 +9585,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -9754,7 +9666,7 @@ spec:
           value: svc.cluster.local
         - name: LOG_LEVEL
           value: info
-        image: registry.mydomain.com/namespace/ide-proxy:test
+        image: eu.gcr.io/gitpod-core-dev/build/ide-proxy:test
         imagePullPolicy: IfNotPresent
         name: ide-proxy
         ports:
@@ -9843,7 +9755,7 @@ spec:
           value: svc.cluster.local
         - name: LOG_LEVEL
           value: info
-        image: registry.mydomain.com/namespace/ide-service:test
+        image: eu.gcr.io/gitpod-core-dev/build/ide-service:test
         imagePullPolicy: IfNotPresent
         name: ide-service
         ports:
@@ -9879,7 +9791,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -9932,7 +9844,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: dcca6a2e85fae554d69e6fe11a64ea7cc27c5bb94968d368599896acf6d9e829
+        gitpod.io/checksum_config: 3b0478b4bb4feb7b7a29bc33bf4ec99671df4dcbd9529778de375c72e78df64c
       creationTimestamp: null
       labels:
         app: gitpod
@@ -9971,7 +9883,7 @@ spec:
           value: info
         - name: JAEGER_DISABLED
           value: "true"
-        image: registry.mydomain.com/namespace/image-builder-mk3:test
+        image: eu.gcr.io/gitpod-core-dev/build/image-builder-mk3:test
         imagePullPolicy: IfNotPresent
         name: image-builder-mk3
         ports:
@@ -10003,7 +9915,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -10026,7 +9938,7 @@ spec:
         - -c
         - set -e; update-ca-certificates -f; cp /etc/ssl/certs/* /ssl-certs; echo
           'OK'
-        image: registry.mydomain.com/namespace/ca-updater:test
+        image: eu.gcr.io/gitpod-core-dev/build/ca-updater:test
         imagePullPolicy: IfNotPresent
         name: update-ca-certificates
         resources: {}
@@ -10101,7 +10013,7 @@ spec:
         fsGroup: 1001
       containers:
         - name: minio
-          image: registry.mydomain.com/namespace/bitnami/minio:2022.5.26-debian-10-r0
+          image: docker.io/bitnami/minio:2022.5.26-debian-10-r0
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -10219,7 +10131,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         imagePullPolicy: IfNotPresent
         name: kube-rbac-proxy
         ports:
@@ -10253,7 +10165,7 @@ spec:
           value: info
         - name: PROXY_DOMAIN
           value: gitpod.example.com
-        image: registry.mydomain.com/namespace/proxy:test
+        image: eu.gcr.io/gitpod-core-dev/build/proxy:test
         imagePullPolicy: IfNotPresent
         name: proxy
         ports:
@@ -10299,7 +10211,7 @@ spec:
         - -c
         - sysctl -w net.core.somaxconn=32768; sysctl -w net.ipv4.ip_local_port_range='1024
           65000'
-        image: registry.mydomain.com/namespace/library/alpine:3.16
+        image: docker.io/library/alpine:3.16
         imagePullPolicy: IfNotPresent
         name: sysctl
         resources: {}
@@ -10412,7 +10324,7 @@ spec:
             secretKeyRef:
               key: encryptionKeys
               name: mysql
-        image: registry.mydomain.com/namespace/public-api-server:test
+        image: eu.gcr.io/gitpod-core-dev/build/public-api-server:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -10455,7 +10367,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -10502,7 +10414,7 @@ spec:
             secretKeyRef:
               key: encryptionKeys
               name: mysql
-        image: registry.mydomain.com/namespace/service-waiter:test
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: database-waiter
         resources: {}
         securityContext:
@@ -10552,7 +10464,7 @@ spec:
         runAsUser: 1000
       containers:
         - name: docker-registry
-          image: "registry.mydomain.com/namespace/library/registry:2.7.1"
+          image: "docker.io/library/registry:2.7.1"
           imagePullPolicy: IfNotPresent
           command:
           - /bin/registry
@@ -10627,7 +10539,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: 4b4c3a473e5569c39bda206c756538858ff6f5495b563c523705666ba3ec4930
+        gitpod.io/checksum_config: f52ae23eddcf2fe15c87ec92cc3d998045c5ff491d52caed0f23a6fccc020134
       creationTimestamp: null
       labels:
         app: gitpod
@@ -10724,7 +10636,7 @@ spec:
           value: "1"
         - name: WSMAN_CFG_MANAGERS
           value: WwogIHsKICAgICJuYW1lIjogImRlZmF1bHQiLAogICAgInVybCI6ICJkbnM6Ly8vd3MtbWFuYWdlcjo4MDgwIiwKICAgICJ0bHMiOiB7CiAgICAgICJjYSI6ICIvd3MtbWFuYWdlci1jbGllbnQtdGxzLWNlcnRzL2NhLmNydCIsCiAgICAgICJjcnQiOiAiL3dzLW1hbmFnZXItY2xpZW50LXRscy1jZXJ0cy90bHMuY3J0IiwKICAgICAgImtleSI6ICIvd3MtbWFuYWdlci1jbGllbnQtdGxzLWNlcnRzL3Rscy5rZXkiCiAgICB9LAogICAgInN0YXRlIjogImF2YWlsYWJsZSIsCiAgICAibWF4U2NvcmUiOiAxMDAsCiAgICAic2NvcmUiOiA1MCwKICAgICJnb3Zlcm4iOiB0cnVlLAogICAgImFkbWlzc2lvbkNvbnN0cmFpbnRzIjogbnVsbCwKICAgICJhcHBsaWNhdGlvbkNsdXN0ZXIiOiAiZGVmYXVsdCIKICB9Cl0=
-        image: registry.mydomain.com/namespace/server:test
+        image: eu.gcr.io/gitpod-core-dev/build/server:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 6
@@ -10777,7 +10689,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -10823,7 +10735,7 @@ spec:
             secretKeyRef:
               key: encryptionKeys
               name: mysql
-        image: registry.mydomain.com/namespace/service-waiter:test
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: database-waiter
         resources: {}
         securityContext:
@@ -10859,7 +10771,7 @@ spec:
             secretKeyRef:
               key: tls.key
               name: messagebus-certificates-secret-core
-        image: registry.mydomain.com/namespace/service-waiter:test
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: msgbus-waiter
         resources: {}
         securityContext:
@@ -10949,7 +10861,7 @@ spec:
           value: "true"
         - name: GRPC_GO_RETRY
           value: "on"
-        image: registry.mydomain.com/namespace/ws-manager:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-manager:test
         imagePullPolicy: IfNotPresent
         name: ws-manager
         ports:
@@ -10984,7 +10896,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -11130,7 +11042,7 @@ spec:
               name: mysql
         - name: WSMAN_BRIDGE_CONFIGPATH
           value: /config/ws-manager-bridge.json
-        image: registry.mydomain.com/namespace/ws-manager-bridge:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-manager-bridge:test
         imagePullPolicy: IfNotPresent
         name: ws-manager-bridge
         ports:
@@ -11160,7 +11072,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -11207,7 +11119,7 @@ spec:
             secretKeyRef:
               key: encryptionKeys
               name: mysql
-        image: registry.mydomain.com/namespace/service-waiter:test
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: database-waiter
         resources: {}
         securityContext:
@@ -11243,7 +11155,7 @@ spec:
             secretKeyRef:
               key: tls.key
               name: messagebus-certificates-secret-core
-        image: registry.mydomain.com/namespace/service-waiter:test
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: msgbus-waiter
         resources: {}
         securityContext:
@@ -11287,7 +11199,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: 54a20d5d027f3637c14e46ec387021c29056fc293a700bd87f470fdd7d796937
+        gitpod.io/checksum_config: f88055f3ce58c8eca0064866deeb5131473b6ba2980dce8bf4f9989e997f1ff5
       creationTimestamp: null
       labels:
         app: gitpod
@@ -11325,7 +11237,7 @@ spec:
           value: info
         - name: JAEGER_DISABLED
           value: "true"
-        image: registry.mydomain.com/namespace/ws-proxy:test
+        image: eu.gcr.io/gitpod-core-dev/build/ws-proxy:test
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 10
@@ -11378,7 +11290,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: registry.mydomain.com/namespace/brancz/kube-rbac-proxy:v0.12.0
+        image: quay.io/brancz/kube-rbac-proxy:v0.12.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9500
@@ -11493,7 +11405,7 @@ spec:
           value: svc.cluster.local
         - name: LOG_LEVEL
           value: info
-        image: registry.mydomain.com/namespace/db-migrations:test
+        image: eu.gcr.io/gitpod-core-dev/build/db-migrations:test
         imagePullPolicy: IfNotPresent
         name: migrations
         resources: {}
@@ -11530,7 +11442,7 @@ spec:
             secretKeyRef:
               key: encryptionKeys
               name: mysql
-        image: registry.mydomain.com/namespace/service-waiter:test
+        image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
         name: database-waiter
         resources: {}
         securityContext:
@@ -11583,7 +11495,7 @@ spec:
               value: unknown
             - name: SERVER_URL
               value: http://server.default.svc.cluster.local:9000
-            image: registry.mydomain.com/namespace/installation-telemetry:test
+            image: eu.gcr.io/gitpod-core-dev/build/installation-telemetry:test
             imagePullPolicy: IfNotPresent
             name: gitpod-telemetry
             resources: {}
@@ -11620,7 +11532,7 @@ spec:
                 secretKeyRef:
                   key: encryptionKeys
                   name: mysql
-            image: registry.mydomain.com/namespace/service-waiter:test
+            image: eu.gcr.io/gitpod-core-dev/build/service-waiter:test
             name: database-waiter
             resources: {}
             securityContext:

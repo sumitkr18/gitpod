@@ -12,8 +12,25 @@ import (
 	"k8s.io/utils/pointer"
 )
 
+var (
+	componentsWithoutSA = []string{
+		"server",
+		"registry-facade",
+		"image-builder-mk3",
+		"ws-daemon",
+	}
+)
+
 func DefaultServiceAccount(component string) RenderFunc {
 	return func(cfg *RenderContext) ([]runtime.Object, error) {
+		if !cfg.Config.CreateServiceAccounts {
+			for _, cwsa := range componentsWithoutSA {
+				if component == cwsa {
+					return nil, nil
+				}
+			}
+		}
+
 		pullSecrets := make([]corev1.LocalObjectReference, 0)
 
 		if len(cfg.Config.ImagePullSecrets) > 0 {
