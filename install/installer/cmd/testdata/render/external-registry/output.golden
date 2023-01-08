@@ -1453,6 +1453,7 @@ data:
         url: my-registry.example.com
       inCluster: false
       privateBaseImageAllowList: []
+    createServiceAccounts: true
     database:
       inCluster: true
     disableDefinitelyGp: true

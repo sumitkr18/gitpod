@@ -1398,6 +1398,7 @@ data:
         url: azure.registry.com
       inCluster: false
       privateBaseImageAllowList: []
+    createServiceAccounts: true
     database:
       external:
         certificate:

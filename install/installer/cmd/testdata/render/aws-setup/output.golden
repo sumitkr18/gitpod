@@ -1377,6 +1377,7 @@ data:
           name: container-registry-s3-backend
         endpoint: registry.amazonaws.com
         region: eu-west-2
+    createServiceAccounts: true
     database:
       external:
         certificate:

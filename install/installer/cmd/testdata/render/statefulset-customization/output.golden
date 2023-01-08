@@ -1519,6 +1519,7 @@ data:
     containerRegistry:
       inCluster: true
       privateBaseImageAllowList: []
+    createServiceAccounts: true
     customization:
     - apiVersion: apps/v1
       kind: StatefulSet

@@ -1066,6 +1066,7 @@ data:
     containerRegistry:
       inCluster: true
       privateBaseImageAllowList: []
+    createServiceAccounts: true
     database:
       inCluster: true
     disableDefinitelyGp: true

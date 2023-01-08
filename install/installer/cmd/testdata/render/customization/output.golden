@@ -1659,6 +1659,7 @@ data:
     containerRegistry:
       inCluster: true
       privateBaseImageAllowList: []
+    createServiceAccounts: true
     customization:
     - apiVersion: '*'
       kind: '*'

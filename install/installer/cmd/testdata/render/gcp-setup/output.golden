@@ -1374,6 +1374,7 @@ data:
         url: gcp.registry.com
       inCluster: false
       privateBaseImageAllowList: []
+    createServiceAccounts: true
     database:
       cloudSQL:
         instance: gcp-db-instance
