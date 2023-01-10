@@ -7,8 +7,8 @@ defaultArgs:
   publishToNPM: true
   publishToJBMarketplace: true
   localAppVersion: unknown
-  codeCommit: 8ee664e58e31e81e9dd9da10fb31809e249f0d61
-  codeVersion: 1.75.0
+  codeCommit: 12773f548f7f9931f7fb60812a97ff6dd508907b
+  codeVersion: 1.74.2
   codeQuality: stable
   noVerifyJBPlugin: false
   intellijDownloadUrl: "https://download.jetbrains.com/idea/ideaIU-2022.3.1.tar.gz"
