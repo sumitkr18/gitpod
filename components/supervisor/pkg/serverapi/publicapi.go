@@ -68,7 +68,6 @@ type Service struct {
 	publicApiMetrics *grpc_prometheus.ClientMetrics
 
 	previousUsingPublicAPI bool
-	onUsingPublicAPI       chan bool
 }
 
 var _ APIInterface = (*Service)(nil)
@@ -109,21 +108,7 @@ func NewServerApiService(ctx context.Context, cfg *ServiceConfig, tknsrv api.Tok
 		cfg:              cfg,
 		experiments:      experiments.NewClient(),
 		publicApiMetrics: grpc_prometheus.NewClientMetrics(),
-		onUsingPublicAPI: make(chan bool),
 	}
-
-	// schedule get public api configcat value for instance updates traffic switching
-	go func() {
-		ticker := time.NewTicker(time.Second * 1)
-		for {
-			select {
-			case <-ctx.Done():
-				ticker.Stop()
-			case <-ticker.C:
-				service.usePublicAPI(ctx)
-			}
-		}
-	}()
 
 	service.publicApiMetrics.EnableClientHandlingTimeHistogram(
 		// it should be aligned with https://github.com/gitpod-io/gitpod/blob/84ed1a0672d91446ba33cb7b504cfada769271a8/install/installer/pkg/components/ide-metrics/configmap.go#L315
@@ -181,7 +166,6 @@ func (s *Service) usePublicAPI(ctx context.Context) bool {
 			log.Info("switch to use ServerAPI")
 		}
 		s.previousUsingPublicAPI = usePublicAPI
-		s.onUsingPublicAPI <- usePublicAPI
 	}
 	return usePublicAPI
 }
@@ -264,26 +248,36 @@ func (s *Service) InstanceUpdates(ctx context.Context, instanceID string, worksp
 		return cancel
 	}
 	go func() {
-		cancel := processUpdate(s.usePublicAPI(ctx))
+		previousUsingPublicAPI := s.usePublicAPI(ctx)
+		cancel := processUpdate(previousUsingPublicAPI)
+		ticker := time.NewTicker(time.Second * 1)
 		defer func() {
 			cancel()
+			ticker.Stop()
 			close(updateChan)
 		}()
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case usePublicAPI := <-s.onUsingPublicAPI:
-				cancel()
-				cancel = processUpdate(usePublicAPI)
+			case <-ticker.C:
+				usePublicAPI := s.usePublicAPI(ctx)
+				if usePublicAPI != previousUsingPublicAPI {
+					previousUsingPublicAPI = usePublicAPI
+					cancel()
+					cancel = processUpdate(usePublicAPI)
+				}
 			case err := <-errChan:
 				if errors.Is(err, context.Canceled) || errors.Is(err, io.EOF) {
 					continue
 				}
 				log.WithField("method", "InstanceUpdates").WithError(err).Error("failed to listen")
 				cancel()
+				ticker.Stop()
 				time.Sleep(time.Second * 2)
-				cancel = processUpdate(s.usePublicAPI(ctx))
+				previousUsingPublicAPI = s.usePublicAPI(ctx)
+				cancel = processUpdate(previousUsingPublicAPI)
+				ticker.Reset(time.Second * 1)
 			}
 		}
 	}()
