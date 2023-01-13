@@ -535,11 +535,14 @@ func installDotfiles(ctx context.Context, cfg *Config, tokenService *InMemoryTok
 				return
 			}
 			authProvider := func() (username string, password string, err error) {
+				log.Info(">>>>>>>>>>>>>> tokenService.GetToken start")
 				resp, err := tokenService.GetToken(ctx, &api.GetTokenRequest{
 					Host: repoUrl.Host,
 					Kind: KindGit,
 				})
+				log.Info(">>>>>>>>>>>>>> tokenService.GetToken end")
 				if err != nil {
+					log.WithError(err).Error(">>>>>>>>>>>>>> tokenService.GetToken error")
 					return
 				}
 				username = resp.User

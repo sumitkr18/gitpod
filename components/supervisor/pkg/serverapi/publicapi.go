@@ -191,6 +191,7 @@ func (s *Service) GetToken(ctx context.Context, query *gitpod.GetTokenSearchOpti
 	if s == nil {
 		return nil, errNotConnected
 	}
+	log.Info(">>>>>>> api GetToken")
 	if !s.usePublicAPI(ctx) {
 		return s.gitpodService.GetToken(ctx, query)
 	}
