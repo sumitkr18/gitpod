@@ -251,6 +251,7 @@ func (s *Service) InstanceUpdates(ctx context.Context, instanceID string, worksp
 		previousUsingPublicAPI := s.usePublicAPI(ctx)
 		cancel := processUpdate(previousUsingPublicAPI)
 		ticker := time.NewTicker(time.Second * 1)
+		retryTicker := backoff.NewTicker(backoff.WithContext(connBackoff, ctx))
 		defer func() {
 			cancel()
 			ticker.Stop()
@@ -274,7 +275,9 @@ func (s *Service) InstanceUpdates(ctx context.Context, instanceID string, worksp
 				log.WithField("method", "InstanceUpdates").WithError(err).Error("failed to listen")
 				cancel()
 				ticker.Stop()
-				time.Sleep(time.Second * 2)
+
+				<-retryTicker.C
+
 				previousUsingPublicAPI = s.usePublicAPI(ctx)
 				cancel = processUpdate(previousUsingPublicAPI)
 				ticker.Reset(time.Second * 1)
@@ -286,21 +289,15 @@ func (s *Service) InstanceUpdates(ctx context.Context, instanceID string, worksp
 }
 
 func (s *Service) publicAPIInstanceUpdate(ctx context.Context, workspaceID string, updateChan chan *gitpod.WorkspaceInstance, errChan chan error) {
-	resp, err := backoff.RetryWithData(func() (v1.WorkspacesService_StreamWorkspaceStatusClient, error) {
-		service := v1.NewWorkspacesServiceClient(s.publicAPIConn)
-		resp, err := service.StreamWorkspaceStatus(ctx, &v1.StreamWorkspaceStatusRequest{
-			WorkspaceId: workspaceID,
-		})
-		if err != nil {
-			log.WithError(err).Info("backoff failed to get workspace service client of PublicAPI, try again")
-		}
-		return resp, err
-	}, backoff.WithContext(connBackoff, ctx))
+	service := v1.NewWorkspacesServiceClient(s.publicAPIConn)
+	resp, err := service.StreamWorkspaceStatus(ctx, &v1.StreamWorkspaceStatusRequest{
+		WorkspaceId: workspaceID,
+	})
 	if err != nil {
 		log.WithField("method", "StreamWorkspaceStatus").WithError(err).Error("failed to call PublicAPI")
 		errChan <- err
-		return
 	}
+
 	log.WithField("method", "StreamWorkspaceStatus").Info("start to listen on publicAPI instanceUpdates")
 	for {
 		resp, err := resp.Recv()
@@ -319,18 +316,12 @@ func (s *Service) publicAPIInstanceUpdate(ctx context.Context, workspaceID strin
 }
 
 func (s *Service) serverInstanceUpdate(ctx context.Context, instanceID string, updateChan chan *gitpod.WorkspaceInstance, errChan chan error) {
-	ch, err := backoff.RetryWithData(func() (<-chan *gitpod.WorkspaceInstance, error) {
-		ch, err := s.gitpodService.InstanceUpdates(ctx, instanceID)
-		if err != nil {
-			log.WithError(err).Info("backoff failed to listen to serverAPI instanceUpdates, try again")
-		}
-		return ch, err
-	}, backoff.WithContext(connBackoff, ctx))
+	ch, err := s.gitpodService.InstanceUpdates(ctx, instanceID)
 	if err != nil {
 		log.WithField("method", "InstanceUpdates").WithError(err).Error("failed to call serverAPI")
 		errChan <- err
-		return
 	}
+
 	log.WithField("method", "InstanceUpdates").WithField("instanceID", instanceID).Info("start to listen on serverAPI instanceUpdates")
 	for update := range ch {
 		updateChan <- update
