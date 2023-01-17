@@ -5488,6 +5488,9 @@ data:
         "contentLimit": 0,
         "resources": null
       },
+      "admin": {
+        "grantFirstUserAdminRole": true
+      },
       "prebuildLimiter": {
         "*": {
           "limit": 100,
@@ -10641,7 +10644,7 @@ spec:
   template:
     metadata:
       annotations:
-        gitpod.io/checksum_config: 112e8aa62e3e63f4756819d1ecee48aa807111855d857f0703a3aba91f8507b9
+        gitpod.io/checksum_config: e191298bf94fd83c7b904ddc07a323fc51dce315fc8d917a61e5a72bbd0f92c2
       creationTimestamp: null
       labels:
         app: gitpod

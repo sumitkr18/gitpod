@@ -141,6 +141,10 @@ export interface ConfigSerialized {
         passlist: string[];
     };
 
+    admin: {
+        grantFirstUserAdminRole: boolean;
+    };
+
     /** defaultBaseImageRegistryWhitelist is the list of registryies users get acces to by default */
     defaultBaseImageRegistryWhitelist: string[];
 

@@ -276,6 +276,9 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 		InactivityPeriodForReposInDays: inactivityPeriodForReposInDays,
 		PATSigningKeyFile:              personalAccessTokenSigningKeyPath,
 		WithoutWorkspaceComponents:     withoutWorkspaceComponents,
+		Admin: AdminConfig{
+			GrantFirstUserAdminRole: true, // existing default
+		},
 	}
 
 	fc, err := common.ToJSONString(scfg)
