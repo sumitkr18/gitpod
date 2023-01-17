@@ -234,7 +234,6 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 		MaxConcurrentPrebuildsPerRef:      10,
 		IncrementalPrebuilds:              IncrementalPrebuilds{CommitHistory: 100, RepositoryPasslist: []string{}},
 		BlockNewUsers:                     ctx.Config.BlockNewUsers,
-		MakeNewUsersAdmin:                 false,
 		DefaultBaseImageRegistryWhitelist: defaultBaseImageRegistryWhitelist,
 		RunDbDeleter:                      runDbDeleter,
 		OAuthServer: OAuthServer{
