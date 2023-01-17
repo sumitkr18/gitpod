@@ -7,6 +7,7 @@
 import * as crypto from "crypto";
 import { inject, injectable } from "inversify";
 import { UserDB, DBUser, WorkspaceDB, OneTimeSecretDB } from "@gitpod/gitpod-db/lib";
+import { BUILTIN_INSTLLATION_SETUP_USER_ID } from "@gitpod/gitpod-db/lib/user-db";
 import * as express from "express";
 import { Authenticator } from "../auth/authenticator";
 import { Config } from "../config";
@@ -105,9 +106,8 @@ export class UserController {
             await this.authenticator.authenticate(req, res, next);
         });
 
-        router.get(
-            "/login/ots/:userId/:key",
-            async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        const loginUserWithOts = (userId?: string) => {
+            return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
                 try {
                     const secret = await this.otsDb.get(req.params.key);
                     if (!secret) {
@@ -115,17 +115,32 @@ export class UserController {
                         return;
                     }
 
-                    const user = await this.userDb.findUserById(req.params.userId);
+                    const user = await this.userDb.findUserById(userId || req.params.userId);
                     if (!user) {
                         res.sendStatus(404);
                         return;
                     }
 
-                    const secretHash = crypto
-                        .createHash("sha256")
-                        .update(user.id + this.config.session.secret)
-                        .digest("hex");
-                    if (secretHash !== secret) {
+                    let verified = false;
+                    if (!verified) {
+                        // This mechanism is used by integration tests, cmp. https://github.com/gitpod-io/gitpod/blob/478a75e744a642d9b764de37cfae655bc8b29dd5/test/tests/ide/vscode/python_ws_test.go#L105
+                        const secretHash = crypto
+                            .createHash("sha256")
+                            .update(user.id + this.config.session.secret)
+                            .digest("hex");
+                        if (secretHash === secret) {
+                            verified = true;
+                        }
+                    }
+                    if (!verified) {
+                        // Use to login admin users
+                        // Counterpart is here: https://github.com/gitpod-io/gitpod/blob/478a75e744a642d9b764de37cfae655bc8b29dd5/components/server/src/installation-admin/installation-admin-controller.ts#L38
+                        const secretHash = crypto.createHash("sha256").update(this.config.admin.loginKey).digest("hex");
+                        if (secretHash === secret) {
+                            verified = true;
+                        }
+                    }
+                    if (!verified) {
                         res.sendStatus(401);
                         return;
                     }
@@ -142,8 +157,10 @@ export class UserController {
                 } catch (error) {
                     res.sendStatus(500);
                 }
-            },
-        );
+            };
+        };
+        router.get("/login/ots/admin-user/:key", loginUserWithOts(BUILTIN_INSTLLATION_SETUP_USER_ID));
+        router.get("/login/ots/:userId/:key", loginUserWithOts());
 
         router.get("/authorize", (req: express.Request, res: express.Response, next: express.NextFunction) => {
             if (!User.is(req.user)) {
