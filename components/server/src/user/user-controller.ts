@@ -106,19 +106,20 @@ export class UserController {
             await this.authenticator.authenticate(req, res, next);
         });
 
-        const loginUserWithOts = (userId?: string) => {
+        const loginUserWithOts = (_userId?: string) => {
             return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+                const sessionId = req.sessionID;
+                let userId = _userId || req.params.userId;
                 try {
+                    log.debug({ sessionId, userId }, "OTS based login started.");
                     const secret = await this.otsDb.get(req.params.key);
                     if (!secret) {
-                        res.sendStatus(401);
-                        return;
+                        throw new ResponseError(401, "Invalid OTS key");
                     }
 
-                    const user = await this.userDb.findUserById(userId || req.params.userId);
+                    const user = await this.userDb.findUserById(userId);
                     if (!user) {
-                        res.sendStatus(404);
-                        return;
+                        throw new ResponseError(404, "User not found");
                     }
 
                     let verified = false;
@@ -141,21 +142,31 @@ export class UserController {
                         }
                     }
                     if (!verified) {
-                        res.sendStatus(401);
-                        return;
+                        throw new ResponseError(401, "OTS secret not verified");
                     }
 
-                    // mimick the shape of a successful login
-                    (req.session! as any).passport = { user: user.id };
+                    // Login this user (sets cookie as side-effect)
+                    await new Promise<void>((resolve, reject) => {
+                        req.login(user, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
 
-                    // Save session to DB
-                    await new Promise<void>((resolve, reject) =>
-                        req.session!.save((err) => (err ? reject(err) : resolve())),
-                    );
+                    // Simply redirect to the app for now
+                    res.redirect("/", 307);
 
-                    res.sendStatus(200);
-                } catch (error) {
-                    res.sendStatus(500);
+                    log.debug({ sessionId, userId }, "OTS based login successful.");
+                } catch (err) {
+                    let code = 500;
+                    if (err.code !== undefined) {
+                        code = err.code;
+                    }
+                    res.sendStatus(code);
+                    log.error({ sessionId, userId }, "OTS based login failed", err, { code });
                 }
             };
         };
@@ -422,7 +433,7 @@ export class UserController {
                     otsExpirationTime.setMinutes(otsExpirationTime.getMinutes() + 2);
                     const ots = await this.otsServer.serve({}, token, otsExpirationTime);
 
-                    res.redirect(`http://${rt}/?ots=${encodeURI(ots.token)}`);
+                    res.redirect(`http://${rt}/?ots=${encodeURI(ots.url)}`);
                 },
             );
         }

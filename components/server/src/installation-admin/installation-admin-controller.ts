@@ -42,15 +42,21 @@ export class InstallationAdminController {
         app.post(adminUserCreateLoginTokenRoute, async (req: express.Request, res: express.Response) => {
             const span = TraceContext.startSpan(adminUserCreateLoginTokenRoute);
             const ctx = { span };
+
             log.info(`${adminUserCreateLoginTokenRoute} received.`);
             try {
                 const secretHash = crypto.createHash("sha256").update(this.config.admin.loginKey).digest("hex");
                 const oneDay = new Date();
                 oneDay.setDate(oneDay.getDate() + 1);
-                await this.otsServer.serve(ctx, secretHash, oneDay);
+                const ots = await this.otsServer.serveToken(ctx, secretHash, oneDay);
+
+                res.send(ots.token).status(200);
+                log.info(`${adminUserCreateLoginTokenRoute} done.`);
             } catch (err) {
                 TraceContext.setError(ctx, err);
                 span.finish();
+                log.error(`${adminUserCreateLoginTokenRoute} error`, err);
+                res.sendStatus(502);
             }
         });
 
