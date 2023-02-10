@@ -215,6 +215,7 @@ func (srv *NotificationService) Respond(ctx context.Context, req *api.RespondReq
 	srv.mutex.Lock()
 	defer srv.mutex.Unlock()
 	pending, ok := srv.pendingNotifications[req.RequestId]
+
 	if !ok {
 		log.WithFields(map[string]interface{}{
 			"RequestId": req.RequestId,
@@ -233,6 +234,10 @@ func (srv *NotificationService) Respond(ctx context.Context, req *api.RespondReq
 		pending.responseChannel <- req.Response
 		pending.close()
 	}
+	log.WithFields(map[string]interface{}{
+		"RequestId": req.RequestId,
+		"Action":    req.Response.Action,
+	}).Info("========= Respond")
 	delete(srv.pendingNotifications, pending.message.RequestId)
 	return &api.RespondResponse{}, nil
 }
