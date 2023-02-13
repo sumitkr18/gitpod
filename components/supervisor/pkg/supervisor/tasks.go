@@ -198,7 +198,7 @@ func (tm *tasksManager) init(ctx context.Context) {
 	tm.contentSource = contentSource
 
 	// give 1s window between content and tasks for IDE to startup, i.e. no competition for resources
-	tm.waitForIde(ctx, 1*time.Second)
+	tm.waitForIde(ctx, 10*time.Second)
 
 	for i, config := range *tasks {
 		id := strconv.Itoa(i)
