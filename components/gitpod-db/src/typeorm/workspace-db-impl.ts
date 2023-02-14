@@ -36,6 +36,7 @@ import {
     AdminGetWorkspacesQuery,
     SnapshotState,
     PrebuiltWorkspaceState,
+    WorkspaceCredentials,
 } from "@gitpod/gitpod-protocol";
 import { TypeORM } from "./typeorm";
 import { DBWorkspace } from "./entity/db-workspace";
@@ -56,6 +57,7 @@ import {
     reportWorkspaceInstancePurged,
     reportWorkspacePurged,
 } from "./metrics";
+import { DBWorkspaceCredentials } from "./entity/db-workspace-credentials";
 
 type RawTo<T> = (instance: WorkspaceInstance, ws: Workspace) => T;
 interface OrderBy {
@@ -93,6 +95,10 @@ export abstract class AbstractTypeORMWorkspaceDBImpl implements WorkspaceDB {
 
     protected async getPrebuildInfoRepo(): Promise<Repository<DBPrebuildInfo>> {
         return await (await this.getManager()).getRepository<DBPrebuildInfo>(DBPrebuildInfo);
+    }
+
+    protected async getWorkspaceCredentialsRepo(): Promise<Repository<DBWorkspaceCredentials>> {
+        return await (await this.getManager()).getRepository<DBWorkspaceCredentials>(DBWorkspaceCredentials);
     }
 
     protected async getPrebuiltWorkspaceUpdatableRepo(): Promise<Repository<DBPrebuiltWorkspaceUpdatable>> {
@@ -1196,6 +1202,28 @@ export abstract class AbstractTypeORMWorkspaceDBImpl implements WorkspaceDB {
 
         const res = await query.getMany();
         return res.map((r) => r.info);
+    }
+
+    async findCredentials(workspaceId: string): Promise<string | undefined> {
+        const repo = await this.getWorkspaceCredentialsRepo();
+        const credentials = await repo.findOne(workspaceId);
+        return credentials?.ideCredentials;
+    }
+
+    async findOrCreateIDECredentials(workspaceId: string): Promise<string> {
+        const repo = await this.getWorkspaceCredentialsRepo();
+        const credentials = await repo.findOne(workspaceId);
+        if (credentials?.ideCredentials) {
+            return credentials.ideCredentials;
+        }
+        const data: WorkspaceCredentials = { workspaceId, ideCredentials: crypto.randomBytes(32).toString("base64") };
+        this.storeCredentials(data);
+        return data.ideCredentials;
+    }
+
+    async storeCredentials(credentials: WorkspaceCredentials): Promise<void> {
+        const repo = await this.getWorkspaceCredentialsRepo();
+        await repo.save(credentials);
     }
 }
 

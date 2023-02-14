@@ -392,7 +392,7 @@ export class WorkspaceManagerBridge implements Disposable {
 
             if (writeToDB) {
                 await this.workspaceDB.trace(ctx).storeInstance(instance);
-
+                this.workspaceDB.trace({ span }).findOrCreateIDECredentials(workspaceId);
                 // cleanup
                 // important: call this after the DB update
                 if (!!lifecycleHandler) {

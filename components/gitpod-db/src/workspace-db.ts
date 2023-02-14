@@ -21,6 +21,7 @@ import {
     PrebuildInfo,
     AdminGetWorkspacesQuery,
     SnapshotState,
+    WorkspaceCredentials,
 } from "@gitpod/gitpod-protocol";
 
 export type MaybeWorkspace = Workspace | undefined;
@@ -194,4 +195,8 @@ export interface WorkspaceDB {
 
     storePrebuildInfo(prebuildInfo: PrebuildInfo): Promise<void>;
     findPrebuildInfos(prebuildIds: string[]): Promise<PrebuildInfo[]>;
+
+    findOrCreateIDECredentials(workspaceId: string): Promise<string>;
+    findCredentials(workspaceId: string): Promise<string | undefined>;
+    storeCredentials(credentials: WorkspaceCredentials): Promise<void>;
 }
