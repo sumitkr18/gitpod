@@ -124,6 +124,11 @@ export namespace PrebuildInfo {
     }
 }
 
+export interface WorkspaceCredentials {
+    workspaceId: string;
+    ideCredentials: string;
+}
+
 export interface StartPrebuildResult {
     prebuildId: string;
     wsid: string;

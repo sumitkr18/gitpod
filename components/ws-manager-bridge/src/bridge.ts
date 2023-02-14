@@ -241,6 +241,8 @@ export class WorkspaceManagerBridge implements Disposable {
                 workspaceId,
             };
 
+            this.workspaceDB.trace({ span }).findOrCreateIDECredentials(workspaceId);
+
             const instance = await this.workspaceDB.trace({ span }).findInstanceById(instanceId);
             if (instance) {
                 this.prometheusExporter.statusUpdateReceived(this.cluster.name, true);
