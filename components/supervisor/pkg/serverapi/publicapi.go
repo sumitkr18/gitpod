@@ -263,8 +263,10 @@ func (s *Service) onInstanceUpdates(ctx context.Context) {
 	processUpdate := func(usePublicAPI bool) context.CancelFunc {
 		childCtx, cancel := context.WithCancel(ctx)
 		if usePublicAPI {
+			log.WithField("method", "processUpdate").Info("use publicAPI")
 			go s.publicAPIInstanceUpdate(childCtx, errChan)
 		} else {
+			log.WithField("method", "processUpdate").Info("use serverAPI")
 			go s.serverInstanceUpdate(childCtx, errChan)
 		}
 		return cancel
