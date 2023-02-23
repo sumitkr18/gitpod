@@ -127,9 +127,10 @@ func NewServerApiService(ctx context.Context, cfg *ServiceConfig, tknsrv api.Tok
 	// public api
 	service.tryConnToPublicAPI()
 
-	service.usingPublicAPI.Store(experiments.SupervisorUsePublicAPI(ctx, service.experiments, experiments.Attributes{
-		UserID: cfg.OwnerID,
-	}))
+	// service.usingPublicAPI.Store(experiments.SupervisorUsePublicAPI(ctx, service.experiments, experiments.Attributes{
+	// 	UserID: cfg.OwnerID,
+	// }))
+	service.usingPublicAPI.Store(true)
 	// start to listen on real instance updates
 	go service.onInstanceUpdates(ctx)
 	go service.observeConfigcatValue(ctx)
@@ -172,9 +173,10 @@ func (s *Service) observeConfigcatValue(ctx context.Context) {
 			ticker.Stop()
 			return
 		case <-ticker.C:
-			usePublicAPI := experiments.SupervisorUsePublicAPI(ctx, s.experiments, experiments.Attributes{
-				UserID: s.cfg.OwnerID,
-			})
+			// usePublicAPI := experiments.SupervisorUsePublicAPI(ctx, s.experiments, experiments.Attributes{
+			// 	UserID: s.cfg.OwnerID,
+			// })
+			usePublicAPI := true
 			if prev := s.usingPublicAPI.Swap(usePublicAPI); prev != usePublicAPI {
 				if usePublicAPI {
 					log.Info("switch to use PublicAPI")
