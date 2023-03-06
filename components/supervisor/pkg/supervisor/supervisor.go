@@ -1150,7 +1150,7 @@ func startAPIEndpoint(ctx context.Context, cfg *Config, wg *sync.WaitGroup, serv
 
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.APIEndpointPort))
 	if err != nil {
-		log.WithError(err).Fatal("cannot start health endpoint")
+		log.WithError(err).Fatal("cannot start health endpoint ")
 	}
 
 	var unaryInterceptors []grpc.UnaryServerInterceptor
