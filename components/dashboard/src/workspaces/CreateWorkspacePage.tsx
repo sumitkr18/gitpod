@@ -123,7 +123,7 @@ export function CreateWorkspacePage() {
                 if (result.workspaceURL) {
                     window.location.href = result.workspaceURL;
                 } else if (result.createdWorkspaceId) {
-                    history.push(`/start/${result.createdWorkspaceId}`);
+                    history.push(`/start/#${result.createdWorkspaceId}`);
                 } else if (result.existingWorkspaces && result.existingWorkspaces.length > 0) {
                     setExistingWorkspaces(result.existingWorkspaces);
                 }

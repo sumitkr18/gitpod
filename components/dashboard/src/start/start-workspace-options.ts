@@ -52,9 +52,6 @@ export namespace StartWorkspaceOptions {
 
     export function parseContextUrl(locationHash: string): string {
         let result = locationHash.replace(/^[#/]+/, "").trim();
-        if (!result.startsWith("http")) {
-            result = `https://${result}`;
-        }
         return result;
     }
 }
