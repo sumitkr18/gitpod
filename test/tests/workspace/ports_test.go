@@ -6,16 +6,15 @@ package workspace
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
 
 	gitpod "github.com/gitpod-io/gitpod/gitpod-protocol"
+	supervisor "github.com/gitpod-io/gitpod/supervisor/api"
 	agent "github.com/gitpod-io/gitpod/test/pkg/agent/workspace/api"
 	"github.com/gitpod-io/gitpod/test/pkg/integration"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
@@ -101,68 +100,98 @@ func TestRegularWorkspacePorts(t *testing.T) {
 			}
 			defer rsa.Close()
 
-			type Port struct {
-				LocalPort int `json:"localPort,omitempty"`
-				Exposed   struct {
-					Visibility string `json:"visibility,omitempty"`
-					Url        string `json:"url,omitempty"`
-				} `json:"exposed,omitempty"`
-			}
-			var portsResp struct {
-				Result struct {
-					Ports []*Port `json:"ports,omitempty"`
-				} `json:"result"`
-			}
+			// type Port struct {
+			// 	LocalPort int `json:"localPort,omitempty"`
+			// 	Exposed   struct {
+			// 		Visibility string `json:"visibility,omitempty"`
+			// 		Url        string `json:"url,omitempty"`
+			// 	} `json:"exposed,omitempty"`
+			// }
+			// var portsResp struct {
+			// 	Result struct {
+			// 		Ports []*Port `json:"ports,omitempty"`
+			// 	} `json:"result"`
+			// }
 
-			expectPort := func(expected Port) {
-				for i := 0; i < 10; i++ {
-					var res agent.ExecResponse
-					err = rsa.Call("WorkspaceAgent.Exec", &agent.ExecRequest{
-						Dir:     wsLoc,
-						Command: "curl",
-						// nftable rule only forwards to this ip address
-						Args: []string{"10.0.5.2:22999/_supervisor/v1/status/ports"},
-					}, &res)
+			expectPort := func(port int, visibility string, url string) {
+				client, err := api.Supervisor(instanceId)
+				if err != nil {
+					t.Fatal(err)
+				}
+				statusClient := supervisor.NewStatusServiceClient(client)
+				status, err := statusClient.PortsStatus(ctx, &supervisor.PortsStatusRequest{
+					Observe: true,
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer func() {
+					status.CloseSend()
+				}()
+				for {
+					resp, err := status.Recv()
 					if err != nil {
 						t.Fatal(err)
 					}
-					err = json.Unmarshal([]byte(res.Stdout), &portsResp)
-					if err != nil {
-						t.Fatalf("cannot decode supervisor ports status response: %s", err)
-					}
+					for _, p := range resp.Ports {
+						if p.LocalPort != uint32(port) {
+							continue
+						}
 
-					t.Logf("ports: %s (%d)", res.Stdout, res.ExitCode)
-					if len(portsResp.Result.Ports) != 1 {
-						t.Logf("expected one port to be open, but got %d, retrying", len(portsResp.Result.Ports))
-						time.Sleep(2 * time.Second)
-						continue
+						if supervisor.PortVisibility_name[int32(p.Exposed.Visibility)] != visibility {
+							t.Logf("expected port %d to have visibility %s, but got %s, waiting", p.LocalPort, visibility, supervisor.PortVisibility_name[int32(p.Exposed.Visibility)])
+							break
+						}
+						if p.Exposed.Url != url {
+							t.Logf("expected port %d to have url %s, but got %s, waiting", p.LocalPort, url, p.Exposed.Url)
+							break
+						}
+						// Got expected port.
+						return
 					}
-					if !reflect.DeepEqual(expected, *portsResp.Result.Ports[0]) {
-						t.Logf("expected %v but got %v, retrying", expected, *portsResp.Result.Ports[0])
-						time.Sleep(2 * time.Second)
-						continue
-					}
-
-					// Got expected port.
-					return
+					t.Logf("did not find port %d, waiting", port)
 				}
+				// for i := 0; i < 10; i++ {
+				// 	client.
 
-				// If we get here, we didn't get the expected port status after retrying.
-				t.Fatalf("did not get expected port status after 10 attempts")
+				// 	var res agent.ExecResponse
+				// 	err = rsa.Call("WorkspaceAgent.Exec", &agent.ExecRequest{
+				// 		Dir:     wsLoc,
+				// 		Command: "curl",
+				// 		// nftable rule only forwards to this ip address
+				// 		Args: []string{"10.0.5.2:22999/_supervisor/v1/status/ports"},
+				// 	}, &res)
+				// 	if err != nil {
+				// 		t.Fatal(err)
+				// 	}
+				// 	err = json.Unmarshal([]byte(res.Stdout), &portsResp)
+				// 	if err != nil {
+				// 		t.Fatalf("cannot decode supervisor ports status response: %s", err)
+				// 	}
+
+				// 	t.Logf("ports: %s (%d)", res.Stdout, res.ExitCode)
+				// 	if len(portsResp.Result.Ports) != 1 {
+				// 		t.Logf("expected one port to be open, but got %d, retrying", len(portsResp.Result.Ports))
+				// 		time.Sleep(2 * time.Second)
+				// 		continue
+				// 	}
+				// 	if !reflect.DeepEqual(expected, *portsResp.Result.Ports[0]) {
+				// 		t.Logf("expected %v but got %v, retrying", expected, *portsResp.Result.Ports[0])
+				// 		time.Sleep(2 * time.Second)
+				// 		continue
+				// 	}
+
+				// 	// Got expected port.
+				// 	return
+				// }
+
+				// // If we get here, we didn't get the expected port status after retrying.
+				// t.Fatalf("did not get expected port status after 10 attempts")
 			}
 
 			t.Logf("checking that port has been auto-detected, and is private")
 			portUrl := fmt.Sprintf("https://%d-%s", 3000, strings.TrimPrefix(nfo.LatestInstance.IdeURL, "https://"))
-			expectPort(Port{
-				LocalPort: 3000,
-				Exposed: struct {
-					Visibility string `json:"visibility,omitempty"`
-					Url        string `json:"url,omitempty"`
-				}{
-					Visibility: "private",
-					Url:        portUrl,
-				},
-			})
+			expectPort(3000, "private", portUrl)
 
 			t.Logf("checking that private port is not accessible from outside the workspace at %s", portUrl)
 			res, err := http.Get(portUrl)
@@ -188,16 +217,7 @@ func TestRegularWorkspacePorts(t *testing.T) {
 			t.Logf("debug: gp CLI output: %s, %s, %d", res1.Stdout, res1.Stderr, res1.ExitCode)
 
 			t.Logf("checking that port is now public")
-			expectPort(Port{
-				LocalPort: 3000,
-				Exposed: struct {
-					Visibility string `json:"visibility,omitempty"`
-					Url        string `json:"url,omitempty"`
-				}{
-					Visibility: "public",
-					Url:        portUrl,
-				},
-			})
+			expectPort(3000, "public", portUrl)
 
 			t.Logf("checking if port is accessible from outside the workspace at %s", portUrl)
 			res, err = http.Get(portUrl)
