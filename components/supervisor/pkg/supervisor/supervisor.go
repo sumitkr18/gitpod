@@ -538,13 +538,16 @@ func installDotfiles(ctx context.Context, cfg *Config, tokenService *InMemoryTok
 				return
 			}
 			authProvider := func() (username string, password string, err error) {
+				log.Info("getting token for dotfiles")
 				resp, err := tokenService.GetToken(ctx, &api.GetTokenRequest{
 					Host: repoUrl.Host,
 					Kind: KindGit,
 				})
 				if err != nil {
+					log.WithError(err).Error("error getting token for dotfiles")
 					return
 				}
+				log.Info("got token for dotfiles")
 				username = resp.User
 				password = resp.Token
 				return
@@ -555,6 +558,7 @@ func installDotfiles(ctx context.Context, cfg *Config, tokenService *InMemoryTok
 				Location:     dotfilePath,
 				RemoteURI:    repo,
 			}
+			log.Info("starting dotfiles clone")
 			done <- client.Clone(ctx)
 			close(done)
 		}()

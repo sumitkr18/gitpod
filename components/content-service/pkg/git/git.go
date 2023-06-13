@@ -209,29 +209,33 @@ func (c *Client) GitWithOutput(ctx context.Context, ignoreErr *string, subcomman
 	cmd.Dir = c.Location
 	cmd.Env = env
 
-	res, err := cmd.CombinedOutput()
-	if err != nil {
-		if strings.Contains(err.Error(), "no child process") {
-			return res, nil
-		}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return nil, cmd.Run()
+	// res, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	if strings.Contains(err.Error(), "no child process") {
+	// 		return res, nil
+	// 	}
 
-		return nil, OpFailedError{
-			Args:       args,
-			ExecErr:    err,
-			Output:     string(res),
-			Subcommand: subcommand,
-		}
-	}
+	// 	return nil, OpFailedError{
+	// 		Args:       args,
+	// 		ExecErr:    err,
+	// 		Output:     string(res),
+	// 		Subcommand: subcommand,
+	// 	}
+	// }
 
-	return res, nil
+	// return res, nil
 }
 
 // Git executes git using the client configuration
 func (c *Client) Git(ctx context.Context, subcommand string, args ...string) (err error) {
-	_, err = c.GitWithOutput(ctx, nil, subcommand, args...)
+	out, err := c.GitWithOutput(ctx, nil, subcommand, args...)
 	if err != nil {
 		return err
 	}
+	log.Error("debug: git output: " + string(out))
 	return nil
 }
 
@@ -353,6 +357,9 @@ func (c *Client) Clone(ctx context.Context) (err error) {
 
 	args = append(args, ".")
 
+	defer func() {
+		log.Info("done cloning dotfiles")
+	}()
 	return c.Git(ctx, "clone", args...)
 }
 

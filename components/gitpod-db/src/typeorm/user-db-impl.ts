@@ -375,11 +375,11 @@ export class TypeORMUserDBImpl implements UserDB {
     private mapDBUserToUser(dbUser: DBUser): User {
         const res = {
             ...dbUser,
-            identities: dbUser.identities.map((i) => {
+            identities: dbUser.identities /*?.map((i) => {
                 const identity = { ...i };
                 delete (identity as any).user;
                 return identity;
-            }),
+            }) ?? []*/,
         };
         return res;
     }
