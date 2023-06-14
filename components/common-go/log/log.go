@@ -17,6 +17,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/gitpod-io/gitpod/components/scrubber"
 )
 
 // Log is the application wide console logger
@@ -52,19 +54,7 @@ func Init(service, version string, json, verbose bool) {
 	log.SetReportCaller(true)
 
 	if json {
-		Log.Logger.SetFormatter(&gcpFormatter{
-			log.JSONFormatter{
-				FieldMap: log.FieldMap{
-					log.FieldKeyMsg: "message",
-				},
-				CallerPrettyfier: func(f *runtime.Frame) (string, string) {
-					s := strings.Split(f.Function, ".")
-					funcName := s[len(s)-1]
-					return funcName, fmt.Sprintf("%s:%d", path.Base(f.File), f.Line)
-				},
-				TimestampFormat: time.RFC3339Nano,
-			},
-		})
+		Log.Logger.SetFormatter(newGcpFormatter(false))
 	} else {
 		Log.Logger.SetFormatter(&logrus.TextFormatter{
 			TimestampFormat: time.RFC3339Nano,
@@ -83,6 +73,24 @@ func Init(service, version string, json, verbose bool) {
 // gcpFormatter formats errors according to GCP rules, see
 type gcpFormatter struct {
 	log.JSONFormatter
+	skipScrub bool
+}
+
+func newGcpFormatter(skipScrub bool) *gcpFormatter {
+	return &gcpFormatter{
+		skipScrub: skipScrub,
+		JSONFormatter: log.JSONFormatter{
+			FieldMap: log.FieldMap{
+				log.FieldKeyMsg: "message",
+			},
+			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+				s := strings.Split(f.Function, ".")
+				funcName := s[len(s)-1]
+				return funcName, fmt.Sprintf("%s:%d", path.Base(f.File), f.Line)
+			},
+			TimestampFormat: time.RFC3339Nano,
+		},
+	}
 }
 
 func (f *gcpFormatter) Format(entry *log.Entry) ([]byte, error) {
@@ -121,6 +129,29 @@ func (f *gcpFormatter) Format(entry *log.Entry) ([]byte, error) {
 		entry.Data["@type"] = "type.googleapis.com/google.devtools.clouderrorreporting.v1beta1.ReportedErrorEvent"
 	}
 
+	if f.skipScrub {
+		return f.JSONFormatter.Format(entry)
+	}
+
+	for key, value := range entry.Data {
+		if key == "error" || key == "severity" || key == "message" || key == "time" || key == "serviceContext" || key == "context" {
+			continue
+		}
+		switch v := value.(type) {
+		case string:
+			entry.Data[key] = scrubber.Default.KeyValue(key, v)
+		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128:
+			// no-op
+		case bool:
+			// no-op
+		case scrubber.TrustedValue:
+			// no-op
+		default:
+			// implement TrustedValue for custom types
+			// make sure to use the scrubber.Default to scrub sensitive data
+			entry.Data[key] = "[redacted:nested]"
+		}
+	}
 	return f.JSONFormatter.Format(entry)
 }
 
