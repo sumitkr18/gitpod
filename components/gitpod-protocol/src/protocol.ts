@@ -434,10 +434,6 @@ export namespace UserEnvVar {
     const WILDCARD_SHARP = "#"; // TODO(gpl) Where does this come from? Bc we have/had patterns as part of URLs somewhere, maybe...?
     const MIN_PATTERN_SEGMENTS = 2;
 
-    function isWildcard(c: string): boolean {
-        return c === WILDCARD_ASTERISK || c === WILDCARD_SHARP;
-    }
-
     /**
      * @param variable
      * @returns Either a string containing an error message or undefined.
@@ -498,7 +494,6 @@ export namespace UserEnvVar {
      * @returns True if the pattern matches that fully qualified name
      */
     export function matchEnvVarPattern(pattern: string, repoFqn: string): boolean {
-        const fqnSegments = splitRepositoryPattern(repoFqn);
         const patternSegments = splitRepositoryPattern(pattern);
         if (patternSegments.length < MIN_PATTERN_SEGMENTS) {
             // Technically not a problem, but we should not allow this for safety reasons.
@@ -507,32 +502,22 @@ export namespace UserEnvVar {
             return false;
         }
 
-        function isWildcardMatch(patternSegment: string, isLastSegment: boolean): boolean {
-            if (isWildcard(patternSegment)) {
-                return true;
-            }
-            return isLastSegment && patternSegment === WILDCARD_DOUBLE_ASTERISK;
-        }
-        let i = 0;
-        for (; i < patternSegments.length; i++) {
-            if (i >= fqnSegments.length) {
-                return false;
-            }
-            const fqnSegment = fqnSegments[i];
-            const patternSegment = patternSegments[i];
-            const isLastSegment = patternSegments.length === i + 1;
-            if (!isWildcardMatch(patternSegment, isLastSegment) && patternSegment !== fqnSegment.toLocaleLowerCase()) {
-                return false;
-            }
-        }
-        if (fqnSegments.length > i) {
-            // Special case: "**" as last segment matches arbitrary # of segments to the right
-            if (patternSegments[i - 1] === WILDCARD_DOUBLE_ASTERISK) {
-                return true;
-            }
-            return false;
-        }
-        return true;
+        const regexStr = joinRepositoryPattern(
+            ...patternSegments.map((s) => {
+                switch (s) {
+                    case WILDCARD_ASTERISK:
+                        return "[^/]*";
+                    case WILDCARD_ASTERISK:
+                        return "[^/]*";
+                    case WILDCARD_DOUBLE_ASTERISK:
+                        return ".*";
+                    default:
+                        return s;
+                }
+            }),
+        );
+        const regex = new RegExp(regexStr);
+        return regex.test(repoFqn);
     }
 
     // Matches the following patterns for "some/nested/repo", ordered by highest score:
