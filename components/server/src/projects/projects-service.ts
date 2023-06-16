@@ -25,6 +25,8 @@ import { IAnalyticsWriter } from "@gitpod/gitpod-protocol/lib/analytics";
 import { ResponseError } from "vscode-ws-jsonrpc";
 import { ErrorCodes } from "@gitpod/gitpod-protocol/lib/messaging/error";
 import { URL } from "url";
+import { SpiceDBClient } from "../authorization/spicedb";
+import { ref_org, ref_project, relation, relationshipUpdates as relations } from "../authorization/relations";
 
 @injectable()
 export class ProjectsService {
@@ -34,6 +36,7 @@ export class ProjectsService {
     @inject(Config) protected readonly config: Config;
     @inject(IAnalyticsWriter) protected readonly analytics: IAnalyticsWriter;
     @inject(WebhookEventDB) protected readonly webhookEventDB: WebhookEventDB;
+    @inject(SpiceDBClient) protected readonly spiceDB: NonNullable<SpiceDBClient>;
 
     async getProject(projectId: string): Promise<Project | undefined> {
         return this.projectDB.findProjectById(projectId);
@@ -149,7 +152,11 @@ export class ProjectsService {
             teamId,
             appInstallationId,
         });
-        await this.projectDB.storeProject(project);
+        await this.projectDB.transaction(async (db) => {
+            await db.storeProject(project);
+
+            await this.spiceDB.writeRelationships(relations(relation(ref_project(project), "org", ref_org(teamId))));
+        });
         await this.onDidCreateProject(project, installer);
 
         this.analytics.track({
