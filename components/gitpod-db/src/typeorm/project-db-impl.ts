@@ -31,7 +31,7 @@ export class ProjectDBImpl extends TransactionalDBImpl<ProjectDB> implements Pro
         super(transactionalEM);
     }
 
-    protected createTransactionalDB(transactionalEM: EntityManager): ProjectDB {
+    createTransactionalDB(transactionalEM: EntityManager): ProjectDB {
         return new ProjectDBImpl(this.encryptionService, transactionalEM);
     }
 

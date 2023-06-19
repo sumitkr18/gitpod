@@ -76,7 +76,7 @@ export class TypeORMUserDBImpl extends TransactionalDBImpl<UserDB> implements Us
         encryptionService = this.encryptionService;
     }
 
-    protected createTransactionalDB(transactionalEM: EntityManager): UserDB {
+    createTransactionalDB(transactionalEM: EntityManager): UserDB {
         return new TypeORMUserDBImpl(this.encryptionService, this.cache, transactionalEM);
     }
 

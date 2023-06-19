@@ -6,14 +6,30 @@
 
 import { EntityManager } from "typeorm";
 import { TypeORM } from "./typeorm";
-import { inject } from "inversify";
+import { inject, interfaces } from "inversify";
 
 export interface TransactionalDB<DB> {
-    transaction<R>(code: (db: DB) => Promise<R>): Promise<R>;
+    transaction<R>(code: (db: DB, dbFactory: DBFactory) => Promise<R>): Promise<R>;
+    createTransactionalDB(transactionalEM: EntityManager): DB;
 }
+
+export const TransactionalDBFactory = Symbol("TransactionalDBFactory");
+export class TransactionalDBFactoryImpl {
+    constructor(protected readonly container: interfaces.Container) {}
+
+    getDB<DB extends TransactionalDB<DB>>(
+        serviceIdentifier: interfaces.ServiceIdentifier<DB>,
+        transactionalEM: EntityManager,
+    ): DB {
+        const db = this.container.get(serviceIdentifier);
+        return db.createTransactionalDB(transactionalEM);
+    }
+}
+type DBFactory = <DB extends TransactionalDB<DB>>(serviceIdentifier: interfaces.ServiceIdentifier<DB>) => DB;
 
 export abstract class TransactionalDBImpl<DB> implements TransactionalDB<DB> {
     @inject(TypeORM) protected readonly typeorm: TypeORM;
+    @inject(TransactionalDBFactory) protected readonly dbFactory: TransactionalDBFactoryImpl;
 
     constructor(
         protected transactionalEM: EntityManager | undefined, // will be undefined when constructed with inversify, which is inteded
@@ -26,12 +42,18 @@ export abstract class TransactionalDBImpl<DB> implements TransactionalDB<DB> {
         return (await this.typeorm.getConnection()).manager;
     }
 
-    async transaction<R>(code: (db: DB) => Promise<R>): Promise<R> {
+    async transaction<R>(code: (db: DB, factory: DBFactory) => Promise<R>): Promise<R> {
         const manager = await this.getEntityManager();
         return await manager.transaction(async (manager) => {
-            return await code(this.createTransactionalDB(manager));
+            // Provide clients with an option to get hold of other DBImpls based on this connection/EntityManager
+            const factory: DBFactory = <D extends TransactionalDB<D>>(
+                serviceIdentifier: interfaces.ServiceIdentifier<D>,
+            ) => {
+                return this.dbFactory.getDB(serviceIdentifier, manager);
+            };
+            return await code(this.createTransactionalDB(manager), factory);
         });
     }
 
-    protected abstract createTransactionalDB(transactionalEM: EntityManager): DB;
+    public abstract createTransactionalDB(transactionalEM: EntityManager): DB;
 }

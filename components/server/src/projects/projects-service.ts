@@ -5,7 +5,14 @@
  */
 
 import { inject, injectable } from "inversify";
-import { DBWithTracing, ProjectDB, TracedWorkspaceDB, WebhookEventDB, WorkspaceDB } from "@gitpod/gitpod-db/lib";
+import {
+    DBWithTracing,
+    ProjectDB,
+    TracedWorkspaceDB,
+    UserDB,
+    WebhookEventDB,
+    WorkspaceDB,
+} from "@gitpod/gitpod-db/lib";
 import {
     Branch,
     PrebuildWithStatus,

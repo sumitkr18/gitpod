@@ -45,6 +45,7 @@ import { PersonalAccessTokenDBImpl } from "./typeorm/personal-access-token-db-im
 import { LinkedInProfileDBImpl } from "./typeorm/linked-in-profile-db-impl";
 import { LinkedInProfileDB } from "./linked-in-profile-db";
 import { DataCache, DataCacheNoop } from "./data-cache";
+import { TransactionalDBFactory, TransactionalDBFactoryImpl } from "./typeorm/transactional-db-impl";
 
 // THE DB container module that contains all DB implementations
 export const dbContainerModule = (cacheClass = DataCacheNoop) =>
@@ -111,4 +112,11 @@ export const dbContainerModule = (cacheClass = DataCacheNoop) =>
         bind(EmailDomainFilterDB).to(EmailDomainFilterDBImpl).inSingletonScope();
         bind(LinkedInProfileDBImpl).toSelf().inSingletonScope();
         bind(LinkedInProfileDB).toService(LinkedInProfileDBImpl);
+
+        // Transactional DB
+        bind(TransactionalDBFactory)
+            .toDynamicValue((ctx) => {
+                return new TransactionalDBFactoryImpl(ctx.container);
+            })
+            .inSingletonScope();
     });

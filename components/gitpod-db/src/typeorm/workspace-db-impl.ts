@@ -69,7 +69,7 @@ export class TypeORMWorkspaceDBImpl extends TransactionalDBImpl<WorkspaceDB> imp
         super(transactionalEM);
     }
 
-    protected createTransactionalDB(transactionalEM: EntityManager): WorkspaceDB {
+    createTransactionalDB(transactionalEM: EntityManager): WorkspaceDB {
         return new TypeORMWorkspaceDBImpl(transactionalEM);
     }
 
