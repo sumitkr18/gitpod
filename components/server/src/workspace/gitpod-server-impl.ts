@@ -206,7 +206,6 @@ import { ClientError } from "nice-grpc-common";
 import { BillingModes } from "../billing/billing-mode";
 import { goDurationToHumanReadable } from "@gitpod/gitpod-protocol/lib/util/timeutil";
 import { organizationOwnerRole } from "../authorization/relationships";
-import { v1 } from "@authzed/authzed-node";
 
 // shortcut
 export const traceWI = (ctx: TraceContext, wi: Omit<LogContext, "userId">) => TraceContext.setOWI(ctx, wi); // userId is already taken care of in WebsocketConnectionManager
