@@ -51,7 +51,7 @@ export class FixStripeJob implements Job {
                 const organizationId = row.organizationId;
                 const stripeCustomerId = row.stripeCustomerId;
                 const newAttributionID = AttributionId.render({ kind: "team", teamId: organizationId });
-                const oldAttributionID = AttributionId.render({ kind: "user", userId: userId });
+                const oldAttributionID = "user:" + userId;
                 try {
                     if (
                         await this.stripeService.updateAttributionId(
