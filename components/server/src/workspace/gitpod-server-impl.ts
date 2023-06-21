@@ -2856,10 +2856,6 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
         }
 
         const team = await this.teamDB.createTeam(user.id, name);
-        const centralizedPermsEnabled = await this.centralizedPermissionsEnabled(user, team.id);
-        if (centralizedPermsEnabled) {
-            await this.authorizer.writeRelationships(organizationOwnerRole(user.id, team.id, user.id));
-        }
         const invite = await this.getGenericInvite(ctx, team.id);
         ctx.span?.setTag("teamId", team.id);
         this.analytics.track({
@@ -2944,8 +2940,22 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
             throw new ResponseError(ErrorCodes.BAD_REQUEST, "invalid role name");
         }
 
-        await this.checkAndBlockUser("setTeamMemberRole");
-        await this.guardTeamOperation(teamId, "update", "org_members_write");
+        const requestor = await this.checkAndBlockUser("setTeamMemberRole");
+        const { team } = await this.guardTeamOperation(teamId, "update", "org_members_write");
+
+        const centralizedPermsEnabled = await this.centralizedPermissionsEnabled(requestor, team.id);
+        if (centralizedPermsEnabled) {
+            if (role === "owner") {
+                await this.authorizer.writeRelationships(organizationOwnerRole(requestor.id, team.id, userId));
+            } else if (role === "member") {
+                // TODO
+            } else {
+                throw new ResponseError(
+                    ErrorCodes.INTERNAL_SERVER_ERROR,
+                    `Role ${role} does not have a valid implementation of permissions.`,
+                );
+            }
+        }
 
         await this.teamDB.setTeamMemberRole(userId, teamId, role);
     }
