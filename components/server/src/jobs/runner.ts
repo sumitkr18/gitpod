@@ -19,6 +19,7 @@ import { WorkspaceGarbageCollector } from "./workspace-gc";
 import { SnapshotsJob } from "./snapshots";
 import { OrgOnlyMigrationJob } from "./org-only-migration-job";
 import { FixStripeJob } from "./fix-stripe-job";
+import { SpiceDBMigrationJob } from "./spicedb-migration";
 
 export const Job = Symbol("Job");
 
@@ -41,6 +42,7 @@ export class JobRunner {
     @inject(SnapshotsJob) protected snapshotsJob: SnapshotsJob;
     @inject(OrgOnlyMigrationJob) protected orgOnlyMigrationJob: OrgOnlyMigrationJob;
     @inject(FixStripeJob) protected fixStripeJob: FixStripeJob;
+    @inject(SpiceDBMigrationJob) protected spicedbMigrationJob: SpiceDBMigrationJob;
 
     public start(): DisposableCollection {
         const disposables = new DisposableCollection();
@@ -54,6 +56,7 @@ export class JobRunner {
             this.snapshotsJob,
             this.orgOnlyMigrationJob,
             this.fixStripeJob,
+            this.spicedbMigrationJob,
         ];
 
         for (let job of jobs) {

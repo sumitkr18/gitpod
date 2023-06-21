@@ -132,6 +132,7 @@ import { SnapshotsJob } from "./jobs/snapshots";
 import { OrgOnlyMigrationJob } from "./jobs/org-only-migration-job";
 import { APIStatsService } from "./api/stats";
 import { FixStripeJob } from "./jobs/fix-stripe-job";
+import { SpiceDBMigrationJob } from "./jobs/spicedb-migration";
 
 export const productionContainerModule = new ContainerModule(
     (bind, unbind, isBound, rebind, unbindAsync, onActivation, onDeactivation) => {
@@ -360,6 +361,7 @@ export const productionContainerModule = new ContainerModule(
         bind(OrgOnlyMigrationJob).toSelf().inSingletonScope();
         bind(FixStripeJob).toSelf().inSingletonScope();
         bind(JobRunner).toSelf().inSingletonScope();
+        bind(SpiceDBMigrationJob).toSelf().inSingletonScope();
 
         // TODO(gpl) Remove as part of fixing https://github.com/gitpod-io/gitpod/issues/14129
         rebind(UsageService)
